@@ -1,100 +1,94 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { ChevronRight, Phone, MessageCircle, Flag, Clock, MapPin, Plus, Minus, ArrowRight, Star } from "lucide-react";
+import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import {
+    ChevronRight,
+    Clock,
+    MapPin,
+    MessageCircle,
+    Flag,
+    MessageSquare,
+    Phone,
+    Star,
+} from 'lucide-react';
+import MessagesPage from '../chat/Message';
+import FeedbackPage from './FeedbackPage';
+import ReportFeedback from './ReportFeedback';
 
-// ---------- Types ----------
+/* -------------------------------------------------------------------------- */
+/*  Types                                                                      */
+/* -------------------------------------------------------------------------- */
 
-interface OverviewItem {
+export interface Breadcrumb {
+    label: string;
+    href: string;
+}
+
+export interface ProductImage {
+    src: string;
+    alt: string;
+}
+
+export interface OverviewItem {
     label: string;
     value: string;
 }
 
-interface RelatedProduct {
-    id: string;
+export interface SellerInfo {
     name: string;
-    location: string;
-    rating: number;
-    reviewCount: number;
-    price: number;
-    image: string;
-}
-
-interface Seller {
-    name: string;
-    initial: string;
+    avatarUrl?: string;
     isOnline: boolean;
     location: string;
     phone: string;
+    feedbackCount: number;
 }
 
-interface ProductDetail {
-    breadcrumb: string[];
+export interface RelatedAd {
+    id: string;
     title: string;
-    images: string[];
+    image: string;
+    location: string;
+    rating: number;
+    reviewCount: number;
+    price: string;
+    href: string;
+    featured?: boolean;
+}
+
+export interface ProductDetailProps {
+    breadcrumbs: Breadcrumb[];
+    title: string;
+    images: ProductImage[];
     postedAt: string;
     location: string;
-    price: number;
+    price: string;
     description: string;
     overview: OverviewItem[];
-    seller: Seller;
+    seller: SellerInfo;
+    relatedAds: RelatedAd[];
 }
 
-// ---------- Mock data ----------
+/* -------------------------------------------------------------------------- */
+/*  Breadcrumb                                                                 */
+/* -------------------------------------------------------------------------- */
 
-const PRODUCT: ProductDetail = {
-    breadcrumb: ["Home", "TWS", "Ear Buds"],
-    title: "Dell Latitude Laptop Bundle (6 Units)",
-    images: [
-        "/product-main.png",
-        "/product-thumb-1.png",
-        "/product-thumb-2.png",
-        "/product-thumb-3.png",
-        "/product-thumb-4.png",
-        "/product-thumb-5.png",
-    ],
-    postedAt: "August 28, 2025 10:01 am",
-    location: "Accra Metropolitan, Greater Accra",
-    price: 10000,
-    description:
-        "You are looking at a lot of 6 Dell Latitude laptops, read description and see pictures for detail information, some laptops need IT technician hands on, selling AS IS",
-    overview: [
-        { label: "Brand", value: "Dell" },
-        { label: "Condition", value: "Used (As Is)" },
-        { label: "Quantity", value: "6 Units" },
-    ],
-    seller: {
-        name: "Anopadwa",
-        initial: "A",
-        isOnline: false,
-        location: "Atwima Kwanwoma, Ashanti",
-        phone: "0270000XXX",
-    },
-};
-
-const RELATED_PRODUCTS: RelatedProduct[] = Array.from({ length: 5 }, (_, i) => ({
-    id: `kvidio-512-${i}`,
-    name: "Kvidio Headphone 512",
-    location: "Atwima Kwanwoma, Ashanti",
-    rating: 4,
-    reviewCount: 0,
-    price: 125000,
-    image: "/headphone-placeholder.png",
-}));
-
-// ---------- Small building blocks ----------
-
-function Breadcrumb({ items }: { items: string[] }) {
+function ProductBreadcrumb({ items }: { items: Breadcrumb[] }) {
     return (
-        <nav className="flex items-center gap-1.5 text-sm text-gray-500">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm">
             {items.map((item, i) => {
                 const isLast = i === items.length - 1;
                 return (
-                    <span key={item} className="flex items-center gap-1.5">
-                        <span className={isLast ? "font-medium text-indigo-600" : "hover:text-gray-700 cursor-pointer"}>
-                            {item}
-                        </span>
-                        {!isLast && <ChevronRight className="h-3.5 w-3.5" />}
+                    <span key={`${item.label}-${i}`} className="flex items-center gap-1.5">
+                        {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-slate-400" />}
+                        {isLast ? (
+                            <span className="font-medium text-emerald-700">{item.label}</span>
+                        ) : (
+                            <Link href={item.href} className="text-slate-500 hover:text-slate-700">
+                                {item.label}
+                            </Link>
+                        )}
                     </span>
                 );
             })}
@@ -102,84 +96,81 @@ function Breadcrumb({ items }: { items: string[] }) {
     );
 }
 
-function RatingStars({ count }: { count: number }) {
-    return (
-        <div className="flex items-center gap-1">
-            <div className="flex">
-                {Array.from({ length: 5 }, (_, i) => (
-                    <Star
-                        key={i}
-                        className={`h-3.5 w-3.5 ${i < count ? "fill-green-600 text-green-600" : "text-gray-300"}`}
-                    />
-                ))}
-            </div>
-            <span className="text-xs font-medium text-green-700">({count}.</span>
-            <span className="text-xs text-gray-500">0)</span>
-        </div>
-    );
-}
+/* -------------------------------------------------------------------------- */
+/*  Image gallery                                                              */
+/* -------------------------------------------------------------------------- */
 
-function ImageGallery({ images }: { images: string[] }) {
+function ImageGallery({ images }: { images: ProductImage[] }) {
     const [activeIndex, setActiveIndex] = useState(0);
+    const active = images[activeIndex];
 
     return (
         <div>
-            <div className="flex aspect-[16/10] items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                    src={images[activeIndex]}
-                    alt="Product"
-                    className="h-full w-full object-contain"
-                    onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                />
+            <div className="relative aspect-[16/8.5] w-full overflow-hidden rounded-md border border-slate-200 bg-white">
+                {active && (
+                    <Image
+                        src={active.src}
+                        alt={active.alt}
+                        fill
+                        sizes="(min-width: 1024px) 960px, 100vw"
+                        className="object-contain p-4 sm:p-8"
+                        priority
+                    />
+                )}
             </div>
 
-            <div className="mt-3 grid grid-cols-6 gap-2">
-                {images.map((src, i) => (
-                    <button
-                        key={src + i}
-                        onClick={() => setActiveIndex(i)}
-                        className={`aspect-square overflow-hidden rounded-md border bg-white ${i === activeIndex ? "border-gray-900 ring-1 ring-gray-900" : "border-gray-200"
-                            }`}
-                    >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                            src={src}
-                            alt={`Thumbnail ${i + 1}`}
-                            className="h-full w-full object-contain"
-                            onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = "none";
-                            }}
-                        />
-                    </button>
-                ))}
-            </div>
+            {images.length > 1 && (
+                <div className="mt-5 flex gap-4 overflow-x-auto pb-1">
+                    {images.map((image, i) => (
+                        <button
+                            key={image.src + i}
+                            type="button"
+                            onClick={() => setActiveIndex(i)}
+                            aria-label={`Show image ${i + 1}`}
+                            aria-pressed={i === activeIndex}
+                            className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-md border bg-white transition sm:h-24 sm:w-28 ${i === activeIndex
+                                ? 'border-emerald-700 ring-1 ring-emerald-700'
+                                : 'border-slate-200 hover:border-slate-400'
+                                }`}
+                        >
+                            <Image src={image.src} alt={image.alt} fill sizes="80px" className="object-contain p-1.5" />
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
 
-function PriceTag({ price }: { price: number }) {
+/* -------------------------------------------------------------------------- */
+/*  Price ribbon                                                               */
+/* -------------------------------------------------------------------------- */
+
+function PriceRibbon({ price }: { price: string }) {
     return (
-        <div className="relative inline-flex items-center bg-green-700 py-2 pl-4 pr-6 text-lg font-bold text-white">
-            ₵{price.toLocaleString()}
-            <span className="absolute -right-[9px] top-0 h-0 w-0 border-y-[18px] border-l-[10px] border-y-transparent border-l-green-700" />
+        <div className="relative inline-flex">
+            <span className="bg-emerald-600 py-2 pl-4 pr-9 text-lg font-semibold text-white [clip-path:polygon(0_0,100%_0,88%_100%,0%_100%)]">
+                {price}
+            </span>
         </div>
     );
 }
 
-function OverviewCard({ items }: { items: OverviewItem[] }) {
+/* -------------------------------------------------------------------------- */
+/*  Overview table                                                             */
+/* -------------------------------------------------------------------------- */
+
+function OverviewTable({ items }: { items: OverviewItem[] }) {
     return (
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <h3 className="mb-3 inline-block border-b-2 border-gray-900 pb-2 text-sm font-semibold text-gray-900">
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="border-b border-slate-100 pb-3 text-sm font-semibold text-slate-900">
                 Overview
-            </h3>
-            <dl className="space-y-2.5">
+            </h2>
+            <dl className="divide-y divide-slate-100">
                 {items.map((item) => (
-                    <div key={item.label} className="flex items-center justify-between text-sm">
-                        <dt className="text-gray-500">{item.label}</dt>
-                        <dd className="font-semibold text-gray-900">{item.value}</dd>
+                    <div key={item.label} className="flex items-center justify-between py-2.5 text-sm">
+                        <dt className="text-slate-500">{item.label}</dt>
+                        <dd className="font-medium text-slate-900">{item.value}</dd>
                     </div>
                 ))}
             </dl>
@@ -187,193 +178,247 @@ function OverviewCard({ items }: { items: OverviewItem[] }) {
     );
 }
 
-function SellerCard({ seller }: { seller: Seller }) {
+/* -------------------------------------------------------------------------- */
+/*  Seller card                                                                */
+/* -------------------------------------------------------------------------- */
+
+function SellerCard({ seller, onViewChat, onViewFeedback, onViewReport }: { seller: SellerInfo; onViewChat: () => void; onViewFeedback: () => void; onViewReport: () => void }) {
     const [phoneRevealed, setPhoneRevealed] = useState(false);
+    const maskedPhone = `${seller.phone.slice(0, 6)}${'X'.repeat(Math.max(seller.phone.length - 6, 0))}`;
 
     return (
-        <div className="rounded-lg border border-gray-200 bg-white">
-            <h3 className="border-b border-gray-100 px-5 py-4 font-semibold text-gray-900">
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="mb-4 border-b border-slate-100 pb-3 text-sm font-semibold text-slate-900">
                 Seller Information
-            </h3>
+            </h2>
 
-            <div className="px-5 py-4">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-700">
-                        {seller.initial}
-                    </div>
-                    <div>
-                        <p className="font-semibold text-gray-900">{seller.name}</p>
-                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                            <span className={`h-1.5 w-1.5 rounded-full ${seller.isOnline ? "bg-green-500" : "bg-red-500"}`} />
-                            {seller.isOnline ? "Online Now" : "Offline Now"}
-                        </div>
-                    </div>
+            <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-sm font-semibold text-emerald-700">
+                    {seller.avatarUrl ? (
+                        <Image
+                            src={seller.avatarUrl}
+                            alt={seller.name}
+                            width={44}
+                            height={44}
+                            className="rounded-full object-cover"
+                        />
+                    ) : (
+                        seller.name.charAt(0).toUpperCase()
+                    )}
                 </div>
-
-                <div className="mt-3 flex items-center gap-1.5 text-sm text-gray-500">
-                    <MapPin className="h-3.5 w-3.5" />
-                    {seller.location}
+                <div>
+                    <p className="font-semibold text-slate-900">{seller.name}</p>
+                    <p className="flex items-center gap-1.5 text-xs text-slate-500">
+                        <span
+                            className={`h-1.5 w-1.5 rounded-full ${seller.isOnline ? 'bg-emerald-500' : 'bg-red-500'
+                                }`}
+                        />
+                        {seller.isOnline ? 'Online Now' : 'Offline Now'}
+                    </p>
                 </div>
-
-                <button
-                    onClick={() => setPhoneRevealed(true)}
-                    className="mt-4 flex w-full flex-col items-center gap-0.5 rounded-md bg-gray-50 py-3 text-sm"
-                >
-                    <span className="flex items-center gap-2 font-semibold text-gray-900">
-                        <Phone className="h-4 w-4 text-green-600" />
-                        {phoneRevealed ? seller.phone.replace("XXX", "123") : seller.phone}
-                    </span>
-                    {!phoneRevealed && <span className="text-xs text-gray-500">Click to reveal phone number</span>}
-                </button>
-
-                <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-md bg-green-700 py-2.5 text-sm font-semibold text-white hover:bg-green-800">
-                    <MessageCircle className="h-4 w-4" />
-                    Chat
-                </button>
             </div>
 
-            <button className="flex w-full items-center justify-center gap-1.5 border-t border-gray-100 py-3 text-sm font-medium text-green-700 hover:bg-gray-50">
+            <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
+                <MapPin className="h-4 w-4 shrink-0" />
+                {seller.location}
+            </p>
+
+            <button
+                type="button"
+                onClick={() => setPhoneRevealed(true)}
+                className="mt-4 flex w-full flex-col items-center gap-1 rounded-lg bg-slate-50 py-3 text-sm transition hover:bg-slate-100"
+            >
+                <span className="flex items-center gap-2 font-semibold text-slate-900">
+                    <Phone className="h-4 w-4" />
+                    {phoneRevealed ? seller.phone : maskedPhone}
+                </span>
+                {!phoneRevealed && <span className="text-xs text-slate-500">Click to reveal phone number</span>}
+            </button>
+
+            <button
+                type="button"
+                onClick={onViewChat}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700 cursor-pointer"
+            >
+                <MessageCircle className="h-4 w-4" />
+                Chat
+            </button>
+
+            <button
+                type="button"
+                onClick={onViewReport}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 border-t border-slate-100 pt-3 text-sm font-medium text-emerald-700 hover:text-emerald-800 cursor-pointer"
+            >
                 <Flag className="h-3.5 w-3.5" />
                 Report this listing
+            </button>
+
+            <button
+                type="button"
+                onClick={onViewFeedback}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700 cursor-pointer"
+            >
+                <MessageSquare className="h-4 w-4" />
+                {seller.feedbackCount} Feedback
             </button>
         </div>
     );
 }
 
-function LocationMap({ label }: { label: string }) {
+/* -------------------------------------------------------------------------- */
+/*  Related ad card                                                            */
+/* -------------------------------------------------------------------------- */
+
+function RelatedAdCard({ ad }: { ad: RelatedAd }) {
     return (
-        <div className="rounded-lg border border-gray-200 bg-white">
-            <h3 className="border-b border-gray-100 px-5 py-4 font-semibold text-gray-900">Location</h3>
-
-            <div className="relative h-72 overflow-hidden bg-[#e8e6df]">
-                {/* Static map placeholder — swap for react-leaflet / Google Maps in production */}
-                <svg className="absolute inset-0 h-full w-full opacity-70" preserveAspectRatio="none">
-                    <defs>
-                        <pattern id="roads" width="60" height="60" patternUnits="userSpaceOnUse">
-                            <path d="M0 30 H60 M30 0 V60" stroke="#d1cfc6" strokeWidth="2" />
-                        </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#roads)" />
-                </svg>
-
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full">
-                    <div className="mb-1 whitespace-nowrap rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm">
-                        {label}
-                    </div>
-                    <MapPin className="mx-auto h-7 w-7 fill-blue-500 text-blue-600" strokeWidth={1.5} />
-                </div>
-
-                <div className="absolute left-3 top-3 flex flex-col overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm">
-                    <button className="flex h-7 w-7 items-center justify-center border-b border-gray-200 hover:bg-gray-50">
-                        <Plus className="h-3.5 w-3.5" />
-                    </button>
-                    <button className="flex h-7 w-7 items-center justify-center hover:bg-gray-50">
-                        <Minus className="h-3.5 w-3.5" />
-                    </button>
-                </div>
-
-                <div className="absolute bottom-1 right-2 text-[10px] text-gray-500">
-                    Leaflet | © OpenStreetMap contributors
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function RelatedProductCard({ product }: { product: RelatedProduct }) {
-    return (
-        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-            <div className="mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-gray-50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                    src={product.image}
-                    alt={product.name}
-                    className="h-full w-full object-contain"
-                    onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                    }}
+        <Link
+            href={ad.href}
+            className="group overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:shadow-md"
+        >
+            <div className="relative aspect-[4/3] w-full bg-slate-100">
+                {ad.featured && (
+                    <span className="absolute left-0 top-3 z-10 rounded-r-md bg-amber-500 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                        Featured
+                    </span>
+                )}
+                <Image
+                    src={ad.image}
+                    alt={ad.title}
+                    fill
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                    className="object-cover transition duration-300 group-hover:scale-105"
                 />
             </div>
-            <h3 className="mb-1.5 font-semibold text-gray-900">{product.name}</h3>
-            <div className="mb-1.5 flex items-center gap-1 text-xs text-gray-500">
-                <MapPin className="h-3.5 w-3.5" />
-                <span>{product.location}</span>
+            <div className="p-3.5">
+                <h3 className="line-clamp-1 text-sm font-medium text-slate-900">{ad.title}</h3>
+                <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                    <MapPin className="h-3 w-3" />
+                    {ad.location}
+                </p>
+                <p className="mt-1.5 flex items-center gap-1 text-xs text-amber-600">
+                    <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                    <span className="font-medium text-slate-700">{ad.rating.toFixed(1)}</span>
+                    <span className="text-slate-400">({ad.reviewCount})</span>
+                </p>
+                <p className="mt-1.5 text-sm font-semibold text-emerald-700">{ad.price}</p>
             </div>
-            <div className="mb-1.5">
-                <RatingStars count={product.rating} />
+        </Link>
+    );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Location map (static placeholder — swap for a real map component)         */
+/* -------------------------------------------------------------------------- */
+
+function LocationMap({ location }: { location: string }) {
+    return (
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="mb-3 border-b border-slate-100 pb-3 text-sm font-semibold text-slate-900">
+                Location
+            </h2>
+            <div className="relative flex h-64 items-center justify-center overflow-hidden rounded-lg bg-slate-100">
+                <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(90deg,#cbd5e1_1px,transparent_1px),linear-gradient(#cbd5e1_1px,transparent_1px)] [background-size:28px_28px]" />
+                <div className="relative flex flex-col items-center gap-1.5">
+                    <MapPin className="h-8 w-8 fill-emerald-600 text-emerald-700" />
+                    <span className="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-sm">
+                        {location}
+                    </span>
+                </div>
             </div>
-            <p className="text-lg font-bold text-amber-500">₵{product.price.toLocaleString()}</p>
         </div>
     );
 }
 
-// ---------- Main page component ----------
+/* -------------------------------------------------------------------------- */
+/*  Page                                                                       */
+/* -------------------------------------------------------------------------- */
 
-export default function ProductDetailPage() {
+export default function ProductDetailPage({
+    breadcrumbs,
+    title,
+    images,
+    postedAt,
+    location,
+    price,
+    description,
+    overview,
+    seller,
+    relatedAds,
+}: ProductDetailProps) {
+    const [showChat, setShowChat] = useState(false);
+    const [showFeedback, setShowFeedback] = useState(false);
+    const [showReport, setShowReport] = useState(false);
+
+    if (showChat) {
+        return <MessagesPage />;
+    }
+
+    if (showFeedback) {
+        return <FeedbackPage sellerName={seller.name} onBack={() => setShowFeedback(false)} />;
+    }
+
+    if (showReport) {
+        return <ReportFeedback onBack={() => setShowReport(false)} />;
+    }
+
     return (
-        <div className="min-h-screen bg-gray-50 px-6 py-6 md:px-10">
-            <div className="mx-auto max-w-7xl">
-                <Breadcrumb items={PRODUCT.breadcrumb} />
+        <div className="min-h-screen bg-[#f4f4f4]">
+            <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+                <ProductBreadcrumb items={breadcrumbs} />
 
-                <h1 className="mb-4 mt-3 text-2xl font-bold text-gray-900">{PRODUCT.title}</h1>
+                <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
 
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
+                <div className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-3">
                     {/* Left column */}
-                    <div>
-                        <ImageGallery images={PRODUCT.images} />
+                    <div className="space-y-6 lg:col-span-2">
+                        <ImageGallery images={images} />
 
-                        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
                             <span className="flex items-center gap-1.5">
-                                <Clock className="h-3.5 w-3.5" />
-                                {PRODUCT.postedAt}
+                                <Clock className="h-4 w-4" />
+                                {postedAt}
                             </span>
                             <span className="flex items-center gap-1.5">
-                                <MapPin className="h-3.5 w-3.5" />
-                                {PRODUCT.location}
+                                <MapPin className="h-4 w-4" />
+                                {location}
                             </span>
                         </div>
 
-                        <div className="mt-3">
-                            <PriceTag price={PRODUCT.price} />
+                        <PriceRibbon price={price} />
+
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_260px]">
+                            <div className="rounded-xl border border-slate-200 bg-white p-5">
+                                <h2 className="mb-2 text-sm font-semibold text-slate-900">Description</h2>
+                                <p className="text-sm leading-relaxed text-slate-600">{description}</p>
+                            </div>
+                            <OverviewTable items={overview} />
                         </div>
 
-                        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[1fr_260px]">
-                            <p className="text-sm leading-relaxed text-gray-600">{PRODUCT.description}</p>
-                            <OverviewCard items={PRODUCT.overview} />
-                        </div>
+                        <LocationMap location={location} />
+
                     </div>
 
                     {/* Right column */}
-                    <div className="space-y-6">
-                        <SellerCard seller={PRODUCT.seller} />
+                    <div className="lg:col-span-1">
+                        <SellerCard
+                            seller={seller}
+                            onViewChat={() => setShowChat(true)}
+                            onViewFeedback={() => setShowFeedback(true)}
+                            onViewReport={() => setShowReport(true)}
+                        />
                     </div>
-                </div>
-
-                {/* Location + related ads */}
-                <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
-                    <div>
-                        <LocationMap label={PRODUCT.location} />
-
-                        <div className="mt-8">
-                            <div className="mb-4 flex items-center justify-between">
-                                <h2 className="text-base font-semibold text-gray-900">Related Ads</h2>
-                                <button className="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100">
-                                    View All
-                                    <ArrowRight className="h-3.5 w-3.5" />
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-                                {RELATED_PRODUCTS.map((product) => (
-                                    <RelatedProductCard key={product.id} product={product} />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div />
                 </div>
             </div>
+            {relatedAds.length > 0 && (
+                <section className="py-10 mx-auto max-w-6xl">
+                    <h2 className="mb-4 text-base font-semibold text-slate-900">Related Ads</h2>
+                    <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {relatedAds.map((ad) => (
+                            <RelatedAdCard key={ad.id} ad={ad} />
+                        ))}
+                    </div>
+                </section>
+            )}
         </div>
     );
 }
