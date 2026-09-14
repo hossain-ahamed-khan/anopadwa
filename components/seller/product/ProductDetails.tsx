@@ -13,9 +13,9 @@ import {
     Phone,
     Star,
 } from 'lucide-react';
-import MessagesPage from '../../chat/Message';
 import FeedbackPage from './FeedbackPage';
 import ReportFeedback from './ReportFeedback';
+import MessagesPage from '../account/Chat';
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                      */

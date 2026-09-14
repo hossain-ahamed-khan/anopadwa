@@ -33,7 +33,13 @@ export default function Navbar() {
                     {isAuthenticated ? (
                         <>
                             <Link
-                                href="/chat"
+                                href="/seller"
+                                className="px-4 py-1 rounded-2xl border border-[#1B6B44] text-[#1B6B44] cursor-pointer transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-[#1B6B44] hover:text-white hover:shadow-[0_6px_16px_rgba(27,107,68,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1B6B44] focus-visible:ring-offset-2"
+                            >
+                                Switch to Seller
+                            </Link>
+                            <Link
+                                href="/buyer/chat"
                                 className="flex items-center gap-1.5 text-sm text-neutral-600 hover:text-amber-600 transition-colors"
                             >
                                 <MessageCircle className="h-4 w-4" />

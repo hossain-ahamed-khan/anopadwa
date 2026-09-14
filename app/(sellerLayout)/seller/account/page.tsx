@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import MessagesPage from "@/components/chat/Message";
+import ListingsView from "@/components/seller/account/MyListing";
 import {
     CheckCircle2,
     Clock3,
@@ -12,8 +12,17 @@ import {
     MessageSquare,
     TriangleAlert,
     Layers3,
+    ClipboardList,
+    LineChart,
+    User,
+    ShieldCheck,
+    PlusCircle,
 } from "lucide-react";
-import productImage from "@/public/image/product-image.png";
+import ListingPerformanceView from "@/components/seller/account/ListingPerformance";
+import FavouritesView from "@/components/seller/account/Favourites";
+import MessagesPage from "@/components/seller/account/Chat";
+import AccountDetailsView from "@/components/seller/account/AccountDetails";
+import PrivacySettingsView from "@/components/seller/account/PrivacySetting";
 
 const stats = [
     {
@@ -50,72 +59,80 @@ const favourites = Array.from({ length: 3 }, (_, index) => ({
     price: "₵78.99",
 }));
 
-function FavouritesView() {
-    const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const allSelected = selectedItems.length === favourites.length;
+type AccountView =
+    | "dashboard"
+    | "listings"
+    | "performance"
+    | "favourites"
+    | "chat"
+    | "account"
+    | "privacy";
 
-    const toggleItem = (id: string) => {
-        setSelectedItems((current) =>
-            current.includes(id)
-                ? current.filter((itemId) => itemId !== id)
-                : [...current, id],
-        );
-    };
+const NAV_ITEMS: {
+    id: AccountView;
+    label: string;
+    icon: typeof LayoutDashboard;
+    badge?: number;
+}[] = [
+        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { id: "listings", label: "My Listings", icon: ClipboardList },
+        { id: "performance", label: "Listing Performance", icon: LineChart },
+        { id: "favourites", label: "Favourites", icon: Heart },
+        { id: "chat", label: "Chat", icon: MessageSquare, badge: 0 },
+        { id: "account", label: "Account Details", icon: User },
+        { id: "privacy", label: "Privacy Settings", icon: ShieldCheck },
+    ];
 
-    const toggleAll = () => {
-        setSelectedItems(allSelected ? [] : favourites.map((item) => item.id));
-    };
-
+function EmptyStateView({
+    title,
+    description,
+}: {
+    title: string;
+    description: string;
+}) {
     return (
-        <section className="rounded-xl border border-slate-200 bg-white px-4 shadow-sm sm:px-5">
-            <div className="flex min-h-13 items-center justify-between border-b border-slate-200 gap-4">
-                <label className="flex items-center gap-3 text-sm text-slate-700">
-                    <input
-                        type="checkbox"
-                        checked={allSelected}
-                        onChange={toggleAll}
-                        className="h-4 w-4 accent-emerald-600"
-                        aria-label="Select all favourites"
-                    />
-                    Select All ({favourites.length} Items)
-                </label>
-                <button
-                    type="button"
-                    onClick={() => setSelectedItems([])}
-                    className="rounded-md bg-red-50 px-5 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100"
-                >
-                    Delete
-                </button>
+        <section className="flex min-h-64 flex-col items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
+            <h2 className="text-sm font-semibold text-slate-800">{title}</h2>
+            <p className="mt-2 max-w-sm text-sm text-slate-400">{description}</p>
+        </section>
+    );
+}
+
+function DashboardView() {
+    return (
+        <section className="min-w-0">
+            <div className="flex items-center gap-4 rounded-xl bg-white px-5 py-5 shadow-sm sm:px-6">
+                <Image
+                    src="https://i.pravatar.cc/96?img=12"
+                    alt="Ovie Rahaman"
+                    width={56}
+                    height={56}
+                    className="h-14 w-14 rounded-full border border-slate-200 object-cover"
+                />
+                <div>
+                    <h2 className="text-base font-bold">Ovie Rahaman</h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                        <span className="font-semibold text-slate-700">Email:</span>{" "}
+                        ovierahaman1@gmail.com
+                    </p>
+                </div>
             </div>
 
-            <div>
-                {favourites.map((item) => (
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                {stats.map(({ label, value, icon: Icon, iconClassName }) => (
                     <div
-                        key={item.id}
-                        className="flex items-center gap-3 border-b border-slate-100 py-4 last:border-b-0 sm:gap-5"
+                        key={label}
+                        className="flex min-h-22 items-center gap-4 rounded-xl bg-white px-5 shadow-sm"
                     >
-                        <input
-                            type="checkbox"
-                            checked={selectedItems.includes(item.id)}
-                            onChange={() => toggleItem(item.id)}
-                            className="h-4 w-4 shrink-0 accent-emerald-600"
-                            aria-label={`Select ${item.title}`}
-                        />
-                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-white">
-                            <Image
-                                src={productImage}
-                                alt={item.title}
-                                fill
-                                sizes="80px"
-                                className="object-contain p-1"
-                            />
+                        <span
+                            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${iconClassName}`}
+                        >
+                            <Icon className="h-5 w-5" />
+                        </span>
+                        <div>
+                            <p className="text-xs text-slate-500">{label}</p>
+                            <p className="mt-1 text-xl font-bold">{value}</p>
                         </div>
-                        <div className="min-w-0 flex-1 text-sm">
-                            <h2 className="truncate font-medium text-slate-800">{item.title}</h2>
-                            <p className="mt-1 truncate text-slate-400">{item.details}</p>
-                            <p className="mt-1 text-slate-400">Seller: {item.seller}</p>
-                        </div>
-                        <p className="shrink-0 text-sm font-medium text-slate-800">{item.price}</p>
                     </div>
                 ))}
             </div>
@@ -124,7 +141,26 @@ function FavouritesView() {
 }
 
 export default function AccountPage() {
-    const [activeView, setActiveView] = useState<"dashboard" | "favourites" | "chat">("dashboard");
+    const [activeView, setActiveView] = useState<AccountView>("dashboard");
+
+    const renderView = () => {
+        switch (activeView) {
+            case "favourites":
+                return <FavouritesView />;
+            case "chat":
+                return <MessagesPage />;
+            case "listings":
+                return <ListingsView />;
+            case "performance":
+                return <ListingPerformanceView />;
+            case "account":
+                return <AccountDetailsView />;
+            case "privacy":
+                return <PrivacySettingsView />;
+            default:
+                return <DashboardView />;
+        }
+    };
 
     return (
         <div className="flex min-h-screen flex-col">
@@ -134,90 +170,49 @@ export default function AccountPage() {
                         <h1 className="mb-8 text-base font-bold">My Account</h1>
 
                         <nav className="space-y-2" aria-label="Account navigation">
-                            <button
-                                type="button"
-                                onClick={() => setActiveView("dashboard")}
-                                className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-semibold transition-colors cursor-pointer ${activeView === "dashboard"
-                                    ? "bg-[#e7f1ed] text-emerald-700"
-                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                                    }`}
-                            >
-                                <LayoutDashboard className="h-4 w-4" />
-                                Dashboard
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveView("favourites")}
-                                className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-semibold transition-colors cursor-pointer ${activeView === "favourites"
-                                    ? "bg-[#e7f1ed] text-emerald-700"
-                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                                    }`}
-                            >
-                                <Heart className="h-4 w-4" />
-                                Favourites
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveView("chat")}
-                                className={`flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm font-semibold transition-colors cursor-pointer ${activeView === "chat"
-                                    ? "bg-[#e7f1ed] text-emerald-700"
-                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                                    }`}
-                            >
-                                <span className="flex items-center gap-3">
-                                    <MessageSquare className="h-4 w-4" />
-                                    Chat
-                                </span>
-                                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-semibold text-white">
-                                    0
-                                </span>
-                            </button>
+                            {NAV_ITEMS.map(({ id, label, icon: Icon, badge }) => (
+                                <button
+                                    key={id}
+                                    type="button"
+                                    onClick={() => setActiveView(id)}
+                                    className={`flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm font-semibold transition-colors cursor-pointer ${activeView === id
+                                        ? "bg-[#e7f1ed] text-emerald-700"
+                                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                                        }`}
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <Icon className="h-4 w-4" />
+                                        {label}
+                                    </span>
+                                    {badge !== undefined && (
+                                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-semibold text-white">
+                                            {badge}
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
                         </nav>
 
-                        <button
-                            type="button"
-                            className="mt-auto flex items-center gap-3 border-t border-slate-100 px-3 pt-6 text-sm font-semibold text-red-600 cursor-pointer"
-                        >
-                            <LogOut className="h-4 w-4" />
-                            Logout
-                        </button>
+                        <div className="mt-auto space-y-4 border-t border-slate-100 pt-6">
+                            <button
+                                type="button"
+                                className="flex items-center gap-3 px-3 text-sm font-semibold text-red-600 cursor-pointer"
+                            >
+                                <LogOut className="h-4 w-4" />
+                                Logout
+                            </button>
+
+                            <button
+                                type="button"
+                                className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-800 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 cursor-pointer"
+                            >
+                                <PlusCircle className="h-4 w-4" />
+                                Add Listing
+                            </button>
+                        </div>
                     </aside>
 
-                    {activeView === "favourites" ? <FavouritesView /> : activeView === "chat" ? <MessagesPage /> : <section className="min-w-0">
-                        <div className="flex items-center gap-4 rounded-xl bg-white px-5 py-5 shadow-sm sm:px-6">
-                            <Image
-                                src="https://i.pravatar.cc/96?img=12"
-                                alt="Ovie Rahaman"
-                                width={56}
-                                height={56}
-                                className="h-14 w-14 rounded-full border border-slate-200 object-cover"
-                            />
-                            <div>
-                                <h2 className="text-base font-bold">Ovie Rahaman</h2>
-                                <p className="mt-1 text-sm text-slate-500">
-                                    <span className="font-semibold text-slate-700">Email:</span>{" "}
-                                    ovierahaman1@gmail.com
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                            {stats.map(({ label, value, icon: Icon, iconClassName }) => (
-                                <div
-                                    key={label}
-                                    className="flex min-h-22 items-center gap-4 rounded-xl bg-white px-5 shadow-sm"
-                                >
-                                    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${iconClassName}`}>
-                                        <Icon className="h-5 w-5" />
-                                    </span>
-                                    <div>
-                                        <p className="text-xs text-slate-500">{label}</p>
-                                        <p className="mt-1 text-xl font-bold">{value}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </section>}
+                    {renderView()}
                 </div>
             </main>
         </div>

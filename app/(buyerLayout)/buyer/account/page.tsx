@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import MessagesPage from "@/components/chat/Message";
 import {
     CheckCircle2,
     Clock3,
@@ -14,6 +13,7 @@ import {
     Layers3,
 } from "lucide-react";
 import productImage from "@/public/image/product-image.png";
+import MessagesPage from "@/components/buyer/chat/Message";
 
 const stats = [
     {
