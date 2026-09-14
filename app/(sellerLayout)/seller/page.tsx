@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import heroLeft from "@/public/image/hero-image-left.png";
+import heroRight from "@/public/image/hero-image-right.png";
+import productImage from "@/public/image/product-image.png";
+import productImage2 from "@/public/image/mobile image.png";
+import ghanaFlag from "@/public/image/ghana-flag.png";
+import locationImg from "@/public/image/location-image.png"
 import {
   Search,
   MapPin,
@@ -10,22 +17,6 @@ import {
   RotateCw,
   ArrowRight,
   ArrowUpRight,
-  Car,
-  Building2,
-  Smartphone,
-  Cpu,
-  Sofa,
-  Shirt,
-  Sparkles,
-  Wrench,
-  Hammer,
-  Boxes,
-  Tent,
-  Baby,
-  Wheat,
-  PawPrint,
-  Briefcase,
-  FileText,
   MessageCircle,
   UserRound,
   Repeat,
@@ -39,13 +30,14 @@ interface Category {
   id: string;
   label: string;
   count: number;
-  icon: React.ElementType;
+  emoji: string;
 }
 
 interface Listing {
   id: string;
   title: string;
   location: string;
+  postedBy: string;
   rating: number;
   price: number;
   image: string;
@@ -64,28 +56,29 @@ interface LocationCard {
 // ---------------------------------------------------------------------------
 
 const CATEGORIES: Category[] = [
-  { id: "vehicles", label: "Vehicles", count: 2, icon: Car },
-  { id: "property", label: "Property", count: 1, icon: Building2 },
-  { id: "phones-tablets", label: "Phones & Tablets", count: 4, icon: Smartphone },
-  { id: "electronics", label: "Electronics", count: 5, icon: Cpu },
-  { id: "home-furniture", label: "Home, Furniture & Appliances", count: 1, icon: Sofa },
-  { id: "fashion", label: "Fashion", count: 3, icon: Shirt },
-  { id: "beauty", label: "Beauty & Personal Care", count: 2, icon: Sparkles },
-  { id: "services", label: "Services", count: 1, icon: Wrench },
-  { id: "repair-construction", label: "Repair & Construction", count: 0, icon: Hammer },
-  { id: "commercial-equipment", label: "Commercial Equipment & Tools", count: 4, icon: Boxes },
-  { id: "leisure", label: "Leisure & Activities", count: 3, icon: Tent },
-  { id: "babies-kids", label: "Babies & Kids", count: 3, icon: Baby },
-  { id: "food-agri", label: "Food, Agriculture & Farming", count: 1, icon: Wheat },
-  { id: "animals-pets", label: "Animals & Pets", count: 0, icon: PawPrint },
-  { id: "jobs", label: "Jobs", count: 1, icon: Briefcase },
-  { id: "seeking-work", label: "Seeking Work - CVs", count: 1, icon: FileText },
+  { id: "vehicles", label: "Vehicles", count: 2, emoji: "🚗" },
+  { id: "property", label: "Property", count: 1, emoji: "🏢" },
+  { id: "phones-tablets", label: "Phones & Tablets", count: 4, emoji: "📱" },
+  { id: "electronics", label: "Electronics", count: 5, emoji: "💻" },
+  { id: "home-furniture", label: "Home, Furniture & Appliances", count: 1, emoji: "🛋️" },
+  { id: "fashion", label: "Fashion", count: 3, emoji: "👗" },
+  { id: "beauty", label: "Beauty & Personal Care", count: 2, emoji: "💄" },
+  { id: "services", label: "Services", count: 1, emoji: "🔧" },
+  { id: "repair-construction", label: "Repair & Construction", count: 0, emoji: "🛠️" },
+  { id: "commercial-equipment", label: "Commercial Equipment & Tools", count: 4, emoji: "📦" },
+  { id: "leisure", label: "Leisure & Activities", count: 3, emoji: "⛺" },
+  { id: "babies-kids", label: "Babies & Kids", count: 3, emoji: "👶" },
+  { id: "food-agri", label: "Food, Agriculture & Farming", count: 1, emoji: "🌾" },
+  { id: "animals-pets", label: "Animals & Pets", count: 0, emoji: "🐾" },
+  { id: "jobs", label: "Jobs", count: 1, emoji: "💼" },
+  { id: "seeking-work", label: "Seeking Work - CVs", count: 1, emoji: "📄" },
 ];
 
 const LISTINGS: Listing[] = Array.from({ length: 9 }).map((_, i) => ({
   id: `listing-${i}`,
-  title: "2017 Toyota Camry SE Sedan",
+  title: "2017 Toyota camry SE Sedan",
   location: "Atwima Kwanwoma, Ashanti",
+  postedBy: "Name",
   rating: 4.0,
   price: 125000,
   image: "/images/listings/camry.jpg",
@@ -142,13 +135,13 @@ function HeroSection() {
   const [query, setQuery] = useState("");
 
   return (
-    <section className="relative overflow-hidden bg-emerald-800">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-6 py-14 md:grid-cols-[280px_1fr_320px] md:py-16">
+    <section className="relative overflow-hidden  bg-[#E5A93C]">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-6 md:grid-cols-[280px_1fr_320px]">
         {/* Pointing character */}
         <div className="order-2 flex justify-center md:order-1 md:justify-start">
           <div className="relative h-64 w-52 md:h-72 md:w-60">
             <Image
-              src="/images/hero/pointing-guy.png"
+              src={heroLeft}
               alt="Person pointing toward the search bar"
               fill
               className="object-contain object-bottom"
@@ -164,7 +157,7 @@ function HeroSection() {
             <span>Find anything in Ghana</span>
             <button
               type="button"
-              className="ml-1 flex items-center gap-1 rounded-full bg-amber-400 px-3 py-1 text-xs font-semibold text-emerald-950 transition hover:bg-amber-300"
+              className="ml-1 flex items-center gap-1 rounded-full bg-[#156240] px-3 py-1 text-xs font-semibold"
             >
               <MapPin className="h-3 w-3" aria-hidden />
               All Locations
@@ -174,7 +167,7 @@ function HeroSection() {
           <form
             role="search"
             onSubmit={(e) => e.preventDefault()}
-            className="flex w-full max-w-xl items-center gap-3 rounded-full bg-white px-5 py-3 shadow-lg"
+            className="flex w-full max-w-xl items-center gap-3 rounded-full bg-white px-5 py-1 shadow-lg"
           >
             <input
               type="text"
@@ -186,51 +179,21 @@ function HeroSection() {
             <button
               type="submit"
               aria-label="Search"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-white transition hover:bg-emerald-700"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-white transition hover:bg-emerald-700 cursor-pointer"
             >
               <Search className="h-4 w-4" aria-hidden />
             </button>
           </form>
         </div>
 
-        {/* Photo collage */}
-        <div className="order-3 hidden grid-cols-2 gap-3 md:grid">
-          <div className="relative col-span-1 row-span-1 -translate-y-2 rotate-[-3deg] overflow-hidden rounded-xl border-4 border-white shadow-lg">
-            <Image
-              src="/images/hero/collage-phones.jpg"
-              alt="Phones for sale"
-              width={140}
-              height={110}
-              className="h-28 w-full object-cover"
-            />
-          </div>
-          <div className="relative col-span-1 row-span-1 translate-y-2 rotate-[3deg] overflow-hidden rounded-xl border-4 border-white shadow-lg">
-            <Image
-              src="/images/hero/collage-electronics.jpg"
-              alt="Electronics for sale"
-              width={140}
-              height={110}
-              className="h-28 w-full object-cover"
-            />
-          </div>
-          <div className="relative col-span-1 row-span-1 translate-y-2 rotate-[2deg] overflow-hidden rounded-xl border-4 border-white shadow-lg">
-            <Image
-              src="/images/hero/collage-car.jpg"
-              alt="Car for sale"
-              width={140}
-              height={110}
-              className="h-28 w-full object-cover"
-            />
-          </div>
-          <div className="relative col-span-1 row-span-1 -translate-y-2 rotate-[-2deg] overflow-hidden rounded-xl border-4 border-white shadow-lg">
-            <Image
-              src="/images/hero/collage-market.jpg"
-              alt="Market goods for sale"
-              width={140}
-              height={110}
-              className="h-28 w-full object-cover"
-            />
-          </div>
+        {/* Photo collage — tight 2x2 grid, no rotation, thin white border */}
+        <div className="order-3 flex justify-end">
+          <Image
+            src={heroRight}
+            alt="hero-right"
+            width={250}
+            height={250}
+          />
         </div>
       </div>
     </section>
@@ -243,16 +206,18 @@ function HeroSection() {
 
 function CategorySidebar() {
   return (
-    <aside className="w-full shrink-0 md:w-64">
-      <nav aria-label="Categories" className="space-y-1">
-        {CATEGORIES.map(({ id, label, count, icon: Icon }) => (
+    <aside className="h-fit w-full shrink-0 self-start bg-white p-4 md:w-64">
+      <nav aria-label="Categories" className="space-y-1.5">
+        {CATEGORIES.map(({ id, label, count, emoji }) => (
           <button
             key={id}
             type="button"
-            className="group flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm text-emerald-950 transition hover:bg-emerald-50"
+            className="group flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm text-emerald-950 transition hover:bg-emerald-50 cursor-pointer"
           >
             <span className="flex items-center gap-3">
-              <Icon className="h-4 w-4 text-emerald-700" aria-hidden />
+              <span className="text-base leading-none" aria-hidden>
+                {emoji}
+              </span>
               <span>
                 {label} <span className="text-emerald-950/40">({count})</span>
               </span>
@@ -274,18 +239,21 @@ function CategorySidebar() {
 
 function ListingCard({ listing }: { listing: Listing }) {
   return (
-    <article className="group overflow-hidden rounded-xl border border-emerald-950/5 bg-white shadow-sm transition hover:shadow-md">
-      <div className="relative aspect-[4/3] w-full overflow-hidden">
+    <Link
+      href={`/seller/product/${listing.id}`}
+      className="group block overflow-hidden rounded-xl border border-emerald-950/5 bg-white shadow-sm transition hover:shadow-md"
+    >
+      <div className="relative w-full overflow-hidden">
         {listing.featured && (
-          <span className="absolute left-0 top-3 z-10 rounded-r-full bg-amber-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+          <span className="absolute left-0 top-3 z-10 rounded-r-md bg-amber-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
             Featured
           </span>
         )}
         <Image
-          src={listing.image}
+          src={productImage2}
           alt={listing.title}
-          fill
-          className="object-cover transition duration-300 group-hover:scale-105"
+          width={350}
+          height={150}
         />
       </div>
       <div className="space-y-1.5 p-4">
@@ -294,7 +262,8 @@ function ListingCard({ listing }: { listing: Listing }) {
           <MapPin className="h-3 w-3" aria-hidden />
           {listing.location}
         </p>
-        <div className="flex items-center gap-1 text-xs text-amber-500">
+        <p className="text-xs text-emerald-950/50">Posted by: {listing.postedBy}</p>
+        <div className="flex items-center gap-1 text-xs text-emerald-600">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star
               key={i}
@@ -309,7 +278,7 @@ function ListingCard({ listing }: { listing: Listing }) {
           {formatCedis(listing.price)}
         </p>
       </div>
-    </article>
+    </Link>
   );
 }
 
@@ -319,8 +288,8 @@ function ListingCard({ listing }: { listing: Listing }) {
 
 function LatestAdsSection() {
   return (
-    <section className="mx-auto max-w-7xl px-6 py-10">
-      <div className="flex flex-col gap-8 md:flex-row">
+    <section className="bg-[#F3F4F5] w-full px-6 py-10">
+      <div className="max-w-7xl mx-auto flex flex-col gap-8 md:flex-row">
         <CategorySidebar />
 
         <div className="flex-1">
@@ -343,7 +312,7 @@ function LatestAdsSection() {
           <div className="mt-8 flex justify-center">
             <button
               type="button"
-              className="flex items-center gap-2 rounded-full border border-emerald-950/10 bg-white px-5 py-2.5 text-sm font-medium text-emerald-950 transition hover:border-emerald-700 hover:text-emerald-700"
+              className="flex items-center gap-2 rounded-full border border-emerald-950/10 bg-white px-5 py-2.5 text-sm font-medium text-emerald-950 transition hover:border-emerald-700 hover:text-emerald-700 cursor-pointer"
             >
               <RotateCw className="h-4 w-4" aria-hidden />
               Load More
@@ -361,27 +330,36 @@ function LatestAdsSection() {
 
 function HowItWorksSection() {
   return (
-    <section className="mx-auto max-w-7xl px-6 py-10">
-      <div className="mb-8 text-center">
-        <h2 className="flex items-center justify-center gap-2 text-xl font-semibold text-emerald-950">
-          <span aria-hidden>🇬🇭</span> How Anopadwa Works
-        </h2>
-        <span className="mx-auto mt-2 block h-0.5 w-10 bg-emerald-700" />
-      </div>
+    <section className="w-full px-6 py-10">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8 text-center">
+          <h2 className="flex items-center justify-center gap-2 text-xl font-semibold text-emerald-950">
+            <span aria-hidden>
+              <Image
+                src={ghanaFlag}
+                alt={"ghanaFlag"}
+                width={30}
+                height={20}
+              />
+            </span> How Anopadwa Works
+          </h2>
+          <span className="mx-auto mt-2 block h-0.5 w-10 bg-emerald-700" />
+        </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {HOW_IT_WORKS.map(({ id, title, description, icon: Icon }) => (
-          <div
-            key={id}
-            className="rounded-xl border border-emerald-950/5 bg-white p-6 text-center shadow-sm"
-          >
-            <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">
-              <Icon className="h-5 w-5 text-emerald-700" aria-hidden />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {HOW_IT_WORKS.map(({ id, title, description, icon: Icon }) => (
+            <div
+              key={id}
+              className="rounded-xl border border-emerald-950/5 bg-white p-6 text-center shadow-sm"
+            >
+              <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">
+                <Icon className="h-5 w-5 text-emerald-700" aria-hidden />
+              </div>
+              <h3 className="text-sm font-semibold text-emerald-950">{title}</h3>
+              <p className="mt-1 text-xs text-emerald-950/50">{description}</p>
             </div>
-            <h3 className="text-sm font-semibold text-emerald-950">{title}</h3>
-            <p className="mt-1 text-xs text-emerald-950/50">{description}</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -393,20 +371,20 @@ function HowItWorksSection() {
 
 function ExploreLocationsSection() {
   return (
-    <section className="bg-emerald-800 py-12">
+    <section className="bg-[#E5A93C] py-8">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-white">Explore Top Locations</h2>
-            <p className="mt-1 text-sm text-emerald-100/70">
+            <p className="mt-1 text-sm text-white/80">
               Browse listings from popular locations in one click.
             </p>
           </div>
           <button
             type="button"
-            className="flex items-center gap-2 self-start rounded-full bg-white px-4 py-2 text-sm font-medium text-emerald-950 transition hover:bg-emerald-50 sm:self-auto"
+            className="flex items-center gap-2 self-start rounded-full bg-[#156240] hover:bg-[#104930] px-4 py-2 text-sm font-medium text-white cursor-pointer"
           >
-            See All Locations
+            See All Location
             <ArrowRight className="h-4 w-4" aria-hidden />
           </button>
         </div>
@@ -416,10 +394,10 @@ function ExploreLocationsSection() {
             <a
               key={location.id}
               href="#"
-              className="group relative block aspect-[4/5] overflow-hidden rounded-xl"
+              className="group relative block aspect-[4/3] overflow-hidden rounded-xl"
             >
               <Image
-                src={location.image}
+                src={locationImg}
                 alt={location.name}
                 fill
                 className="object-cover transition duration-300 group-hover:scale-105"

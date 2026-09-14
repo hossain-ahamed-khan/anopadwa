@@ -1,4 +1,4 @@
-import ProductDetailPage from "@/components/buyer/product/ProductDetails";
+import ProductDetailPage from "@/components/seller/product/ProductDetails";
 import productImage from "@/public/image/product-image.png";
 
 const PRODUCT = {
@@ -20,7 +20,7 @@ const RELATED_ADS = Array.from({ length: 4 }, (_, index) => ({
     rating: 4,
     reviewCount: 0,
     price: PRODUCT.price,
-    href: `/buyer/product/related-${index}`,
+    href: `/seller/product/related-${index}`,
     featured: true,
 }));
 
@@ -34,9 +34,9 @@ export default async function ProductPage({
     return (
         <ProductDetailPage
             breadcrumbs={[
-                { label: "Home", href: "/buyer" },
-                { label: "Latest Ads", href: "/buyer" },
-                { label: PRODUCT.title, href: `/buyer/product/${id}` },
+                { label: "Home", href: "/seller" },
+                { label: "Latest Ads", href: "/seller" },
+                { label: PRODUCT.title, href: `/seller/product/${id}` },
             ]}
             title={PRODUCT.title}
             images={PRODUCT_IMAGES}
