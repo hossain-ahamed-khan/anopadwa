@@ -1,6 +1,6 @@
-import Footer from "@/components/buyer/Footer";
 import Navbar from "@/components/buyer/Navbar";
 import MessagesPage from "@/components/chat/Message";
+import Footer from "@/components/sheared/Footer";
 
 export default function ChatPage() {
     return (

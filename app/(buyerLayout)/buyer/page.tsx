@@ -6,6 +6,7 @@ import Link from "next/link";
 import heroLeft from "@/public/image/hero-image-left.png";
 import heroRight from "@/public/image/hero-image-right.png";
 import productImage from "@/public/image/product-image.png";
+import productImage2 from "@/public/image/mobile image.png";
 import ghanaFlag from "@/public/image/ghana-flag.png";
 import locationImg from "@/public/image/location-image.png"
 import {
@@ -205,7 +206,7 @@ function HeroSection() {
 
 function CategorySidebar() {
   return (
-    <aside className="bg-white w-full shrink-0 md:w-64 p-1">
+    <aside className="h-fit w-full shrink-0 self-start bg-white p-4 md:w-64">
       <nav aria-label="Categories" className="space-y-1.5">
         {CATEGORIES.map(({ id, label, count, emoji }) => (
           <button
@@ -249,9 +250,9 @@ function ListingCard({ listing }: { listing: Listing }) {
           </span>
         )}
         <Image
-          src={productImage}
+          src={productImage2}
           alt={listing.title}
-          width={300}
+          width={350}
           height={150}
         />
       </div>

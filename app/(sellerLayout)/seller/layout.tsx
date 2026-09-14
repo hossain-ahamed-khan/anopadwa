@@ -1,5 +1,5 @@
-import Footer from "@/components/seller/Footer";
 import Navbar from "@/components/seller/Navbar";
+import Footer from "@/components/sheared/Footer";
 
 const BuyerLayout = ({ children }: { children: React.ReactNode }) => {
     return (

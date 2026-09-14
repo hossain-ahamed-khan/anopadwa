@@ -1,7 +1,8 @@
-import Navbar from "@/components/buyer/Navbar";
 import Footer from "@/components/sheared/Footer";
+import Navbar from "@/components/sheared/Navbar";
 
-const BuyerLayout = ({ children }: { children: React.ReactNode }) => {
+
+const CommonLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <div className="flex flex-col min-h-screen">
             <Navbar />
@@ -13,4 +14,4 @@ const BuyerLayout = ({ children }: { children: React.ReactNode }) => {
     );
 };
 
-export default BuyerLayout;
+export default CommonLayout;
