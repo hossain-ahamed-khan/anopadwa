@@ -4,24 +4,46 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import mainLogo from "@/public/image/anopadwa-logo.png";
 import loginImage from "@/public/image/login-image.png";
+import { useAppDispatch } from "@/redux/hooks";
+import { login } from "@/redux/features/auth/authSlice";
+import { useLoginMutation } from "@/redux/features/auth/authApi";
 
 export default function SignInPage() {
+    const router = useRouter();
+    const dispatch = useAppDispatch();
+    const [loginUser, { isLoading }] = useLoginMutation();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [rememberPassword, setRememberPassword] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitting(true);
+
         try {
-            // Wire this up to your RTK Query login mutation, e.g.:
-            // await login({ email, password }).unwrap();
-        } finally {
-            setIsSubmitting(false);
+            const response = await loginUser({ email: email.trim(), password }).unwrap();
+            const { user, accessToken, refreshToken } = response.data;
+
+            dispatch(login({ user, token: accessToken, refreshToken }));
+            toast.success("Logged in successfully");
+            router.replace("/buyer");
+        } catch (error) {
+            const message =
+                typeof error === "object" &&
+                error !== null &&
+                "data" in error &&
+                typeof error.data === "object" &&
+                error.data !== null &&
+                "message" in error.data &&
+                typeof error.data.message === "string"
+                    ? error.data.message
+                    : "Unable to log in. Please check your credentials and try again.";
+
+            toast.error(message);
         }
     };
 
@@ -130,10 +152,10 @@ export default function SignInPage() {
 
                         <button
                             type="submit"
-                            disabled={isSubmitting}
+                            disabled={isLoading}
                             className="w-full rounded-md bg-amber-500 hover:bg-amber-600 disabled:opacity-60 disabled:cursor-not-allowed text-neutral-900 font-semibold py-3 text-sm transition-colors mt-2 cursor-pointer"
                         >
-                            {isSubmitting ? "Logging in..." : "Log in"}
+                            {isLoading ? "Logging in..." : "Log in"}
                         </button>
                     </form>
 

@@ -4,14 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { MessageCircle, User } from "lucide-react";
 import mainLogo from "@/public/image/anopadwa-logo.png";
-// Wire this up to your auth slice/selector, e.g.:
-// import { useAppSelector } from "@/store/hooks";
-// import { selectIsAuthenticated } from "@/features/auth/authSlice";
+import { useAppSelector } from "@/redux/hooks";
+import { selectToken } from "@/redux/features/auth/authSlice";
 
 export default function Navbar() {
-    // Replace with your real auth check, e.g.:
-    // const isAuthenticated = useAppSelector(selectIsAuthenticated);
-    const isAuthenticated = true;
+    const isAuthenticated = Boolean(useAppSelector(selectToken));
 
     return (
         <header className="w-full bg-white border-b border-emerald-600">
