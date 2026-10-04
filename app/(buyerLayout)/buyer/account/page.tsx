@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
+import { toast } from "sonner";
 import {
     CheckCircle2,
     Clock3,
@@ -14,6 +17,9 @@ import {
 } from "lucide-react";
 import productImage from "@/public/image/product-image.png";
 import MessagesPage from "@/components/buyer/chat/Message";
+import { useAppDispatch } from "@/redux/hooks";
+import { logout } from "@/redux/features/auth/authSlice";
+import { baseApi } from "@/redux/api/baseApi";
 
 const stats = [
     {
@@ -124,7 +130,31 @@ function FavouritesView() {
 }
 
 export default function AccountPage() {
+    const router = useRouter();
+    const dispatch = useAppDispatch();
     const [activeView, setActiveView] = useState<"dashboard" | "favourites" | "chat">("dashboard");
+
+    const handleLogout = async () => {
+        const result = await Swal.fire({
+            title: "Log out?",
+            text: "Are you sure you want to log out?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#dc2626",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Yes, log out",
+            cancelButtonText: "Cancel",
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        dispatch(logout());
+        dispatch(baseApi.util.resetApiState());
+        router.replace("/login");
+        toast.success("Logged out successfully");
+    };
 
     return (
         <div className="flex min-h-screen flex-col">
@@ -176,6 +206,7 @@ export default function AccountPage() {
 
                         <button
                             type="button"
+                            onClick={handleLogout}
                             className="mt-auto flex items-center gap-3 border-t border-slate-100 px-3 pt-6 text-sm font-semibold text-red-600 cursor-pointer"
                         >
                             <LogOut className="h-4 w-4" />

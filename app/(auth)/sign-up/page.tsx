@@ -23,11 +23,23 @@ function getErrorMessage(error: unknown, fallback: string) {
         error !== null &&
         "data" in error &&
         typeof error.data === "object" &&
-        error.data !== null &&
-        "message" in error.data &&
-        typeof error.data.message === "string"
+        error.data !== null
     ) {
-        return error.data.message;
+        const data = error.data;
+
+        if (
+            "error" in data &&
+            typeof data.error === "object" &&
+            data.error !== null &&
+            "message" in data.error &&
+            typeof data.error.message === "string"
+        ) {
+            return data.error.message;
+        }
+
+        if ("message" in data && typeof data.message === "string") {
+            return data.message;
+        }
     }
 
     return fallback;
