@@ -13,6 +13,7 @@ import {
     Phone,
     Star,
 } from 'lucide-react';
+import FavouriteButton from '@/components/shared/FavouriteButton';
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                      */
@@ -57,6 +58,7 @@ export interface RelatedAd {
 export interface ProductDetailProps {
     breadcrumbs: Breadcrumb[];
     title: string;
+    listingId: string;
     images: ProductImage[];
     postedAt: string;
     location: string;
@@ -273,6 +275,10 @@ function RelatedAdCard({ ad }: { ad: RelatedAd }) {
             className="group overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:shadow-md"
         >
             <div className="relative aspect-[4/3] w-full bg-slate-100">
+                <FavouriteButton
+                    listingId={ad.id}
+                    className="absolute right-3 top-3 z-10"
+                />
                 {ad.featured && (
                     <span className="absolute left-0 top-3 z-10 rounded-r-md bg-amber-500 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
                         Featured
@@ -333,6 +339,7 @@ function LocationMap({ location }: { location: string }) {
 export default function ProductDetailPage({
     breadcrumbs,
     title,
+    listingId,
     images,
     postedAt,
     location,
@@ -349,7 +356,10 @@ export default function ProductDetailPage({
             <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
                 <ProductBreadcrumb items={breadcrumbs} />
 
-                <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+                <div className="mt-4 flex items-start justify-between gap-4">
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+                    <FavouriteButton listingId={listingId} size="large" />
+                </div>
 
                 <div className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-3">
                     {/* Left column */}

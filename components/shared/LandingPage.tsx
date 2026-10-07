@@ -24,6 +24,7 @@ import {
     Eye,
     X,
 } from "lucide-react";
+import FavouriteButton from "@/components/shared/FavouriteButton";
 
 // TODO: adjust these two import paths to wherever the API files live in your project
 import {
@@ -442,6 +443,10 @@ function ListingCard({
             className="group block overflow-hidden rounded-xl border border-emerald-950/5 bg-white shadow-sm transition hover:shadow-md"
         >
             <div className="relative aspect-[4/3] w-full overflow-hidden bg-emerald-950/5">
+                <FavouriteButton
+                    listingId={listing.id}
+                    className="absolute right-3 top-3 z-10"
+                />
                 {badge !== "none" && (
                     <span
                         className={`absolute left-0 top-3 z-10 rounded-r-md px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white ${badge === "featured" ? "bg-amber-500" : "bg-emerald-700"

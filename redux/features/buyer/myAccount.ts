@@ -45,22 +45,6 @@ export type ProfileResponse = {
     data: UserProfile;
 };
 
-/* ------------------------------ Favourites ------------------------------ */
-
-// Placeholder – list was empty, replace with the real item shape
-export type Favourite = {
-    id: string;
-    [key: string]: unknown;
-};
-
-export type FavouritesResponse = {
-    success: boolean;
-    data: {
-        favourites: Favourite[];
-    };
-    meta: PaginationMeta;
-};
-
 /* ---------------------------- Conversations ----------------------------- */
 
 // Placeholder – list was empty, replace with the real item shape
@@ -90,21 +74,6 @@ const buyerAccountApi = baseApi.injectEndpoints({
             providesTags: [{ type: "Profile", id: "ME" }],
         }),
 
-        getFavouriteListApi: builder.query<
-            Paginated<Favourite>,
-            PaginationParams | void
-        >({
-            query: (params) => ({
-                url: '/users/me/favourites',
-                method: 'GET',
-                params: params ?? undefined,
-            }),
-            transformResponse: (response: FavouritesResponse) => ({
-                items: response.data.favourites,
-                meta: response.meta,
-            }),
-        }),
-
         getConversationListApi: builder.query<
             Paginated<Conversation>,
             PaginationParams | void
@@ -120,10 +89,10 @@ const buyerAccountApi = baseApi.injectEndpoints({
             }),
         }),
     }),
+    overrideExisting: true,
 });
 
 export const {
     useGetMyProfileApiQuery,
-    useGetFavouriteListApiQuery,
     useGetConversationListApiQuery,
 } = buyerAccountApi;

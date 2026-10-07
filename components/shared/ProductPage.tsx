@@ -226,6 +226,7 @@ export default function ProductPage({
                 { label: listing.title, href: `${basePath}/${listing.id}` },
             ]}
             title={listing.title}
+            listingId={listing.id}
             images={images}
             postedAt={formatPostedAt(listing.publishedAt ?? listing.createdAt)}
             location={location}

@@ -6,58 +6,30 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { toast } from "sonner";
 import {
-    CheckCircle2,
-    Clock3,
     Heart,
     LayoutDashboard,
     LogOut,
     MessageSquare,
-    TriangleAlert,
-    Layers3,
 } from "lucide-react";
 import productImage from "@/public/image/product-image.png";
 import MessagesPage from "@/components/buyer/chat/Message";
 import { useAppDispatch } from "@/redux/hooks";
 import { logout } from "@/redux/features/auth/authSlice";
 import { baseApi } from "@/redux/api/baseApi";
-// TODO: adjust this path to wherever your updated hook file lives
 import {
     useGetMyProfileApiQuery,
-    useGetFavouriteListApiQuery,
     useGetConversationListApiQuery,
     type UserProfile,
-    type Favourite,
 } from "@/redux/features/buyer/myAccount";
-
-const stats = [
-    {
-        label: "Total Listings",
-        value: "0",
-        icon: Layers3,
-        iconClassName: "bg-blue-50 text-blue-500",
-    },
-    {
-        label: "Published Listings",
-        value: "0",
-        icon: CheckCircle2,
-        iconClassName: "bg-emerald-50 text-emerald-600",
-    },
-    {
-        label: "Pending Listings",
-        value: "0",
-        icon: Clock3,
-        iconClassName: "bg-orange-50 text-orange-500",
-    },
-    {
-        label: "Expired Listings",
-        value: "0",
-        icon: TriangleAlert,
-        iconClassName: "bg-red-50 text-red-500",
-    },
-];
+import {
+    useGetFavouritesQuery,
+    type Favourite,
+} from "@/redux/features/addFavourite/getFavourite";
+import { useDeleteFavouriteMutation } from "@/redux/features/addFavourite/deleteFavourite";
 
 type FavouriteCardData = {
     id: string;
+    listingId: string;
     title: string;
     details: string;
     seller: string;
@@ -65,15 +37,16 @@ type FavouriteCardData = {
     image: string | null;
 };
 
-// TODO: the favourites list was empty in your sample response, so these field
-// names are guesses. Update them (and the `Favourite` type) once you see a real item.
 const toFavouriteCard = (item: Favourite): FavouriteCardData => ({
     id: item.id,
-    title: String(item.title ?? "Untitled"),
-    details: String(item.details ?? ""),
-    seller: String(item.seller ?? "Unknown seller"),
-    price: item.price != null ? `₵${item.price}` : "",
-    image: typeof item.image === "string" ? item.image : null,
+    listingId: item.listing.id,
+    title: item.listing.title,
+    details: `${item.listing.condition} · ${item.listing.description}`,
+    seller: item.listing.seller.fullName,
+    price: item.listing.price
+        ? `${item.listing.currency} ${item.listing.price}`
+        : "",
+    image: item.listing.images[0]?.imageUrl ?? null,
 });
 
 const getInitials = (name: string) =>
@@ -151,10 +124,16 @@ function ProfileDetails({ profile }: { profile: UserProfile }) {
 }
 
 function FavouritesView() {
-    const { data, isLoading, isError, refetch } = useGetFavouriteListApiQuery();
+    const router = useRouter();
+    const { data, isLoading, isError, refetch } = useGetFavouritesQuery(
+        undefined,
+        { refetchOnMountOrArgChange: true },
+    );
+    const [deleteFavourite, { isLoading: isDeleting }] =
+        useDeleteFavouriteMutation();
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
-    const favourites = (data?.items ?? []).map(toFavouriteCard);
+    const favourites = (data?.data.favourites ?? []).map(toFavouriteCard);
     const allSelected =
         favourites.length > 0 && selectedItems.length === favourites.length;
 
@@ -167,7 +146,28 @@ function FavouritesView() {
     };
 
     const toggleAll = () => {
-        setSelectedItems(allSelected ? [] : favourites.map((item) => item.id));
+        setSelectedItems(
+            allSelected ? [] : favourites.map((item) => item.listingId),
+        );
+    };
+
+    const handleDelete = async () => {
+        if (selectedItems.length === 0 || isDeleting) {
+            return;
+        }
+
+        try {
+            await Promise.all(
+                selectedItems.map((listingId) =>
+                    deleteFavourite(listingId).unwrap(),
+                ),
+            );
+            setSelectedItems([]);
+            await refetch();
+            toast.success("Removed from favourites");
+        } catch {
+            toast.error("Unable to remove the selected favourites. Please try again.");
+        }
     };
 
     if (isLoading) {
@@ -233,11 +233,11 @@ function FavouritesView() {
                 </label>
                 <button
                     type="button"
-                    onClick={() => setSelectedItems([])}
-                    disabled={selectedItems.length === 0}
+                    onClick={handleDelete}
+                    disabled={selectedItems.length === 0 || isDeleting}
                     className="rounded-md bg-red-50 px-5 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    Delete
+                    {isDeleting ? "Deleting..." : "Delete"}
                 </button>
             </div>
 
@@ -245,12 +245,22 @@ function FavouritesView() {
                 {favourites.map((item) => (
                     <div
                         key={item.id}
-                        className="flex items-center gap-3 border-b border-slate-100 py-4 last:border-b-0 sm:gap-5"
+                        role="link"
+                        tabIndex={0}
+                        onClick={() => router.push(`/buyer/product/${item.listingId}`)}
+                        onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                router.push(`/buyer/product/${item.listingId}`);
+                            }
+                        }}
+                        className="flex cursor-pointer items-center gap-3 border-b border-slate-100 py-4 last:border-b-0 hover:bg-slate-50 sm:gap-5"
                     >
                         <input
                             type="checkbox"
-                            checked={selectedItems.includes(item.id)}
-                            onChange={() => toggleItem(item.id)}
+                            checked={selectedItems.includes(item.listingId)}
+                            onClick={(event) => event.stopPropagation()}
+                            onChange={() => toggleItem(item.listingId)}
                             className="h-4 w-4 shrink-0 accent-emerald-600"
                             aria-label={`Select ${item.title}`}
                         />
@@ -418,22 +428,6 @@ export default function AccountPage() {
                             <ProfileDetails profile={profile} />
                         )}
 
-                        <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                            {stats.map(({ label, value, icon: Icon, iconClassName }) => (
-                                <div
-                                    key={label}
-                                    className="flex min-h-22 items-center gap-4 rounded-xl bg-white px-5 shadow-sm"
-                                >
-                                    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${iconClassName}`}>
-                                        <Icon className="h-5 w-5" />
-                                    </span>
-                                    <div>
-                                        <p className="text-xs text-slate-500">{label}</p>
-                                        <p className="mt-1 text-xl font-bold">{value}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
                     </section>}
                 </div>
             </main>
