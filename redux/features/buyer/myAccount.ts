@@ -87,6 +87,7 @@ const buyerAccountApi = baseApi.injectEndpoints({
                 method: 'GET',
             }),
             transformResponse: (response: ProfileResponse) => response.data,
+            providesTags: [{ type: "Profile", id: "ME" }],
         }),
 
         getFavouriteListApi: builder.query<
