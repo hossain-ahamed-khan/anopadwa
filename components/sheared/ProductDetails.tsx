@@ -165,8 +165,8 @@ function OverviewTable({ items }: { items: OverviewItem[] }) {
                 Overview
             </h2>
             <dl className="divide-y divide-slate-100">
-                {items.map((item) => (
-                    <div key={item.label} className="flex items-center justify-between py-2.5 text-sm">
+                {items.map((item, index) => (
+                    <div key={`${item.label}-${index}`} className="flex items-center justify-between py-2.5 text-sm">
                         <dt className="text-slate-500">{item.label}</dt>
                         <dd className="font-medium text-slate-900">{item.value}</dd>
                     </div>
