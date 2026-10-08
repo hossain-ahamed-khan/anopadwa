@@ -1,70 +1,46 @@
 "use client";
 
 import { useState, type ChangeEvent, type DragEvent, type FormEvent } from "react";
-import { ChevronRight, ChevronDown, Sparkles, Camera, X, MapPin } from "lucide-react";
+import { ChevronRight, ChevronDown, Sparkles, Camera, X } from "lucide-react";
+import { skipToken } from "@reduxjs/toolkit/query";
+import { toast } from "sonner";
+import { useCreateListingMutation } from "@/redux/features/seller/createListing/listingApi";
+import { useGetCategoriesQuery } from "@/redux/features/seller/createListing/getCategories";
+import { useGetRegionsQuery } from "@/redux/features/seller/createListing/getRegion";
+import { useGetDistrictsByRegionQuery } from "@/redux/features/seller/createListing/getDistrict";
 
 // ---------- Types ----------
 
-type PricingKind = "price" | "range" | "disabled";
 type PricingTerms = "fixed" | "negotiable" | "on_call";
 
 interface ProductFormState {
-    category: string;
-    subCategory: string;
+    categoryId: string;
     title: string;
-    listingTitle: string;
     description: string;
-    pricingKind: PricingKind;
+    condition: string;
+    currency: string;
     pricingTerms: PricingTerms;
     price: string;
-    minPrice: string;
-    maxPrice: string;
     images: File[];
-    region: string;
-    metropolitanDistrict: string;
-    postCode: string;
-    countryCode: string;
-    phone: string;
-    email: string;
-    hideMap: boolean;
-    agreedToTerms: boolean;
+    regionId: string;
+    districtId: string;
 }
-
-const CATEGORIES = ["Electronics", "Vehicles", "Real Estate", "Fashion", "Home & Garden"];
-const SUB_CATEGORIES = ["Mobile Phones", "Laptops", "Cameras", "Accessories"];
-const REGIONS = ["Greater Accra", "Ashanti", "Western", "Eastern", "Central"];
-const DISTRICTS = ["Accra Metropolitan", "Tema Metropolitan", "Kumasi Metropolitan"];
-const POST_CODES = ["GA-039-5028", "GA-184-3922", "GA-535-2010"];
-const COUNTRY_CODES = [
-    { code: "+233", flag: "🇬🇭", label: "Ghana" },
-    { code: "+234", flag: "🇳🇬", label: "Nigeria" },
-    { code: "+225", flag: "🇨🇮", label: "Côte d'Ivoire" },
-];
 
 const MAX_IMAGES = 5;
 const MAX_FILE_SIZE_MB = 10;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
 const initialState: ProductFormState = {
-    category: "",
-    subCategory: "",
+    categoryId: "",
     title: "",
-    listingTitle: "",
     description: "",
-    pricingKind: "price",
+    condition: "used",
+    currency: "GHS",
     pricingTerms: "fixed",
     price: "",
-    minPrice: "",
-    maxPrice: "",
     images: [],
-    region: "",
-    metropolitanDistrict: "",
-    postCode: "",
-    countryCode: "+233",
-    phone: "",
-    email: "",
-    hideMap: false,
-    agreedToTerms: false,
+    regionId: "",
+    districtId: "",
 };
 
 // ---------- Small building blocks ----------
@@ -118,7 +94,7 @@ function Select({
     value: string;
     onChange: (value: string) => void;
     placeholder: string;
-    options: string[];
+    options: Array<string | { value: string; label: string }>;
 }) {
     return (
         <div className="relative">
@@ -130,11 +106,16 @@ function Select({
                 <option value="" disabled className="text-neutral-400">
                     {placeholder}
                 </option>
-                {options.map((opt) => (
-                    <option key={opt} value={opt}>
-                        {opt}
+                {options.map((option) => {
+                    const opt = typeof option === "string"
+                        ? { value: option, label: option }
+                        : option;
+                    return (
+                    <option key={opt.value} value={opt.value}>
+                        {opt.label}
                     </option>
-                ))}
+                    );
+                })}
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
         </div>
@@ -176,38 +157,21 @@ function AiButton({ label, onClick }: { label: string; onClick?: () => void }) {
     );
 }
 
-function RadioPill({
-    checked,
-    onSelect,
-    label,
-}: {
-    checked: boolean;
-    onSelect: () => void;
-    label: string;
-}) {
-    return (
-        <button
-            type="button"
-            onClick={onSelect}
-            className="flex items-center gap-2 text-sm text-neutral-700"
-        >
-            <span
-                className={`flex h-4 w-4 items-center justify-center rounded-full border ${checked ? "border-emerald-600" : "border-neutral-300"
-                    }`}
-            >
-                {checked && <span className="h-2 w-2 rounded-full bg-emerald-600" />}
-            </span>
-            {label}
-        </button>
-    );
-}
-
 // ---------- Main component ----------
 
 export default function UploadProductForm() {
     const [form, setForm] = useState<ProductFormState>(initialState);
     const [isDraggingImages, setIsDraggingImages] = useState(false);
     const [imageError, setImageError] = useState<string | null>(null);
+    const { data: categoriesResponse, isLoading: isLoadingCategories } = useGetCategoriesQuery();
+    const { data: regionsResponse, isLoading: isLoadingRegions } = useGetRegionsQuery();
+    const { data: districtsResponse, isLoading: isLoadingDistricts } =
+        useGetDistrictsByRegionQuery(form.regionId || skipToken);
+    const [createListing, { isLoading: isCreatingListing }] = useCreateListingMutation();
+
+    const categories = categoriesResponse?.data.categories ?? [];
+    const regions = regionsResponse?.data.regions.filter((region) => region.isEnabled) ?? [];
+    const districts = districtsResponse?.data.districts.filter((district) => district.isEnabled) ?? [];
 
     function update<K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) {
         setForm((prev) => ({ ...prev, [key]: value }));
@@ -256,10 +220,50 @@ export default function UploadProductForm() {
         e.target.value = "";
     }
 
-    function handleSubmit(e: FormEvent) {
+    async function handleSubmit(e: FormEvent) {
         e.preventDefault();
-        if (!form.agreedToTerms) return;
-        console.log("Submitting product listing:", form);
+
+        if (!form.categoryId || !form.regionId || !form.districtId || !form.title.trim() ||
+            !form.description.trim() || !form.condition || !form.pricingTerms || !form.price) {
+            toast.error("Please complete all required listing fields.");
+            return;
+        }
+        if (form.images.length === 0) {
+            toast.error("Please add at least one listing image.");
+            return;
+        }
+
+        const formData = new FormData();
+        const fields = {
+            title: form.title.trim(),
+            description: form.description.trim(),
+            categoryId: form.categoryId,
+            condition: form.condition,
+            pricingType: form.pricingTerms,
+            price: form.price,
+            currency: form.currency,
+            regionId: form.regionId,
+            districtId: form.districtId,
+            publish: "true",
+        };
+
+        Object.entries(fields).forEach(([key, value]) => formData.append(key, value));
+        form.images.forEach((image) => formData.append("images", image));
+
+        try {
+            await createListing(formData).unwrap();
+            toast.success("Listing submitted successfully.");
+            setForm(initialState);
+            setImageError(null);
+        } catch (error) {
+            const message =
+                typeof error === "object" && error !== null && "data" in error &&
+                    typeof error.data === "object" && error.data !== null && "message" in error.data &&
+                    typeof error.data.message === "string"
+                    ? error.data.message
+                    : "Unable to submit listing. Please try again.";
+            toast.error(message);
+        }
     }
 
     return (
@@ -289,24 +293,22 @@ export default function UploadProductForm() {
                             </button>
                         }
                     >
-                        <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
                             <Field label="Category">
                                 <Select
-                                    value={form.category}
-                                    onChange={(v) => update("category", v)}
+                                    value={form.categoryId}
+                                    onChange={(v) => update("categoryId", v)}
                                     placeholder="Select a category"
-                                    options={CATEGORIES}
-                                />
-                            </Field>
-                            <Field label="Sub Category">
-                                <Select
-                                    value={form.subCategory}
-                                    onChange={(v) => update("subCategory", v)}
-                                    placeholder="Select a sub category"
-                                    options={SUB_CATEGORIES}
+                                    options={categories.map((category) => ({
+                                        value: category.id,
+                                        label: category.name,
+                                    }))}
                                 />
                             </Field>
                         </div>
+                        {isLoadingCategories && (
+                            <p className="text-xs text-neutral-500">Loading categories...</p>
+                        )}
                     </Section>
 
                     {/* Product Information */}
@@ -318,17 +320,6 @@ export default function UploadProductForm() {
                                         value={form.title}
                                         onChange={(v) => update("title", v)}
                                         placeholder="Enter Title"
-                                    />
-                                    <AiButton label="Write With AI" />
-                                </div>
-                            </Field>
-
-                            <Field label="Listing Title" required>
-                                <div className="flex items-center gap-2">
-                                    <TextInput
-                                        value={form.listingTitle}
-                                        onChange={(v) => update("listingTitle", v)}
-                                        placeholder="Enter Listing Title"
                                     />
                                     <AiButton label="Write With AI" />
                                 </div>
@@ -349,93 +340,51 @@ export default function UploadProductForm() {
                                     </div>
                                 </div>
                             </Field>
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <Field label="Condition" required>
+                                    <Select
+                                        value={form.condition}
+                                        onChange={(v) => update("condition", v)}
+                                        placeholder="Select condition"
+                                        options={["new", "used", "refurbished"]}
+                                    />
+                                </Field>
+                                <Field label="Currency" required>
+                                    <Select
+                                        value={form.currency}
+                                        onChange={(v) => update("currency", v)}
+                                        placeholder="Select currency"
+                                        options={["GHS", "USD"]}
+                                    />
+                                </Field>
+                            </div>
                         </div>
                     </Section>
 
                     {/* Pricing */}
                     <Section title="PRICING">
-                        <div className="grid gap-6 sm:grid-cols-2">
-                            <div className="space-y-4">
-                                <div>
-                                    <span className="mb-2 block text-sm font-medium text-neutral-800">
-                                        Pricing Type
-                                    </span>
-                                    <div className="flex flex-wrap gap-4">
-                                        <RadioPill
-                                            checked={form.pricingKind === "price"}
-                                            onSelect={() => update("pricingKind", "price")}
-                                            label="Price"
-                                        />
-                                        <RadioPill
-                                            checked={form.pricingKind === "range"}
-                                            onSelect={() => update("pricingKind", "range")}
-                                            label="Price Range"
-                                        />
-                                        <RadioPill
-                                            checked={form.pricingKind === "disabled"}
-                                            onSelect={() => update("pricingKind", "disabled")}
-                                            label="Disabled"
-                                        />
-                                    </div>
-                                </div>
-
-                                {form.pricingKind === "price" && (
-                                    <Field label="Price [¢]" required>
-                                        <TextInput
-                                            value={form.price}
-                                            onChange={(v) => update("price", v)}
-                                            placeholder="Enter Price"
-                                            type="number"
-                                        />
-                                    </Field>
-                                )}
-                            </div>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <span className="mb-2 block text-sm font-medium text-neutral-800">
-                                        Pricing Type
-                                    </span>
-                                    <div className="flex flex-wrap gap-4">
-                                        <RadioPill
-                                            checked={form.pricingTerms === "fixed"}
-                                            onSelect={() => update("pricingTerms", "fixed")}
-                                            label="Fixed"
-                                        />
-                                        <RadioPill
-                                            checked={form.pricingTerms === "negotiable"}
-                                            onSelect={() => update("pricingTerms", "negotiable")}
-                                            label="Negotiable"
-                                        />
-                                        <RadioPill
-                                            checked={form.pricingTerms === "on_call"}
-                                            onSelect={() => update("pricingTerms", "on_call")}
-                                            label="On Call"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {form.pricingKind === "range" && (
-                                <>
-                                    <Field label="Price [¢]" required>
-                                        <TextInput
-                                            value={form.minPrice}
-                                            onChange={(v) => update("minPrice", v)}
-                                            placeholder="Enter Min Price"
-                                            type="number"
-                                        />
-                                    </Field>
-                                    <Field label="Max Price [¢]" required>
-                                        <TextInput
-                                            value={form.maxPrice}
-                                            onChange={(v) => update("maxPrice", v)}
-                                            placeholder="Enter Max Price"
-                                            type="number"
-                                        />
-                                    </Field>
-                                </>
-                            )}
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <Field label="Pricing Type" required>
+                                <Select
+                                    value={form.pricingTerms}
+                                    onChange={(v) => update("pricingTerms", v as PricingTerms)}
+                                    placeholder="Select pricing type"
+                                    options={[
+                                        { value: "fixed", label: "Fixed" },
+                                        { value: "negotiable", label: "Negotiable" },
+                                        { value: "on_call", label: "On Call" },
+                                    ]}
+                                />
+                            </Field>
+                            <Field label="Price" required>
+                                <TextInput
+                                    value={form.price}
+                                    onChange={(v) => update("price", v)}
+                                    placeholder="Enter price"
+                                    type="number"
+                                />
+                            </Field>
                         </div>
                     </Section>
 
@@ -507,112 +456,39 @@ export default function UploadProductForm() {
                         <div className="space-y-4">
                             <Field label="Select a Region">
                                 <Select
-                                    value={form.region}
-                                    onChange={(v) => update("region", v)}
+                                    value={form.regionId}
+                                    onChange={(v) => {
+                                        update("regionId", v);
+                                        update("districtId", "");
+                                    }}
                                     placeholder="Select Region"
-                                    options={REGIONS}
+                                    options={regions.map((region) => ({
+                                        value: region.id,
+                                        label: region.name,
+                                    }))}
                                 />
                             </Field>
 
                             <Field label="Metropolitan District">
                                 <Select
-                                    value={form.metropolitanDistrict}
-                                    onChange={(v) => update("metropolitanDistrict", v)}
+                                    value={form.districtId}
+                                    onChange={(v) => update("districtId", v)}
                                     placeholder="Select Metropolitan District"
-                                    options={DISTRICTS}
+                                    options={districts.map((district) => ({
+                                        value: district.id,
+                                        label: district.name,
+                                    }))}
                                 />
                             </Field>
 
-                            <Field label="Post Code">
-                                <Select
-                                    value={form.postCode}
-                                    onChange={(v) => update("postCode", v)}
-                                    placeholder="Enter Postal Code"
-                                    options={POST_CODES}
-                                />
-                            </Field>
-
-                            <Field label="Phone" required>
-                                <div className="flex gap-2">
-                                    <div className="relative">
-                                        <select
-                                            value={form.countryCode}
-                                            onChange={(e) => update("countryCode", e.target.value)}
-                                            className="h-full appearance-none rounded-lg border border-neutral-200 bg-white py-2.5 pl-3 pr-8 text-sm text-neutral-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-                                        >
-                                            {COUNTRY_CODES.map((c) => (
-                                                <option key={c.code} value={c.code}>
-                                                    {c.flag} {c.code}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400" />
-                                    </div>
-                                    <TextInput
-                                        value={form.phone}
-                                        onChange={(v) => update("phone", v)}
-                                        placeholder="201 555 999"
-                                        type="tel"
-                                    />
-                                </div>
-                            </Field>
-
-                            <Field label="Email">
-                                <TextInput
-                                    value={form.email}
-                                    onChange={(v) => update("email", v)}
-                                    placeholder="Enter Email"
-                                    type="email"
-                                />
-                            </Field>
-
-                            {!form.hideMap && (
-                                <div>
-                                    <span className="mb-1.5 block text-sm font-medium text-neutral-800">Map</span>
-                                    <div className="relative mx-auto flex h-52 max-w-md items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100">
-                                        <div className="absolute inset-0 bg-[linear-gradient(0deg,transparent_24%,rgba(0,0,0,.04)_25%,rgba(0,0,0,.04)_26%,transparent_27%,transparent_74%,rgba(0,0,0,.04)_75%,rgba(0,0,0,.04)_76%,transparent_77%,transparent),linear-gradient(90deg,transparent_24%,rgba(0,0,0,.04)_25%,rgba(0,0,0,.04)_26%,transparent_27%,transparent_74%,rgba(0,0,0,.04)_75%,rgba(0,0,0,.04)_76%,transparent_77%,transparent)] bg-[length:24px_24px]" />
-                                        <div className="relative flex flex-col items-center gap-1 text-emerald-700">
-                                            <MapPin className="h-6 w-6 fill-emerald-600 text-emerald-700" />
-                                            <span className="rounded-md border border-neutral-200 bg-white px-2 py-0.5 text-xs text-neutral-700 shadow-sm">
-                                                {form.region || "Accra Metropolitan, Greater Accra"}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                            {isLoadingRegions && (
+                                <p className="text-xs text-neutral-500">Loading regions...</p>
+                            )}
+                            {isLoadingDistricts && form.regionId && (
+                                <p className="text-xs text-neutral-500">Loading districts...</p>
                             )}
 
-                            <label className="flex items-center gap-2 text-sm text-neutral-600">
-                                <input
-                                    type="checkbox"
-                                    checked={form.hideMap}
-                                    onChange={(e) => update("hideMap", e.target.checked)}
-                                    className="h-4 w-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500/30"
-                                />
-                                Don&apos;t show the Map
-                            </label>
                         </div>
-                    </Section>
-
-                    {/* Terms & Conditions */}
-                    <Section title="TERMS &amp; CONDITIONS">
-                        <label className="flex items-start gap-2 text-sm text-neutral-600">
-                            <input
-                                type="checkbox"
-                                checked={form.agreedToTerms}
-                                onChange={(e) => update("agreedToTerms", e.target.checked)}
-                                className="mt-0.5 h-4 w-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500/30"
-                            />
-                            <span>
-                                I have read and agree to the{" "}
-                                <a href="#" className="text-emerald-700 underline underline-offset-2">
-                                    Terms and Conditions
-                                </a>{" "}
-                                and{" "}
-                                <a href="#" className="text-emerald-700 underline underline-offset-2">
-                                    Privacy Policy
-                                </a>
-                            </span>
-                        </label>
                     </Section>
 
                     {/* Actions */}
@@ -626,10 +502,10 @@ export default function UploadProductForm() {
                         </button>
                         <button
                             type="submit"
-                            disabled={!form.agreedToTerms}
+                            disabled={isCreatingListing}
                             className="rounded-lg bg-emerald-800 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            Submit
+                            {isCreatingListing ? "Submitting..." : "Submit"}
                         </button>
                     </div>
                 </form>
