@@ -5,6 +5,8 @@ const socketUrl =
     process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/v1\/?$/, "") ??
     "";
 
+
+
 let socket: Socket | null = null;
 let connectedToken: string | null = null;
 
@@ -16,7 +18,7 @@ export function connectSocket(token: string): Socket {
     if (socket && connectedToken === token) return socket;
 
     socket?.disconnect();
-    socket = io(socketUrl, {
+    socket = io("https://umber.sobhoy.com", {
         auth: { token },
         transports: ["websocket", "polling"],
         reconnection: true,
