@@ -1,8 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAppSelector } from '@/redux/hooks';
+import { selectToken, selectUser } from '@/redux/features/auth/authSlice';
+import { useStartConversationMutation } from '@/redux/api/chatApi';
+import { toast } from 'sonner';
 import {
     ChevronRight,
     Clock,
@@ -14,6 +19,8 @@ import {
     Star,
 } from 'lucide-react';
 import FavouriteButton from '@/components/shared/FavouriteButton';
+import FeedbackPage from '@/components/buyer/product/FeedbackPage';
+import ReportFeedback from '@/components/buyer/product/ReportFeedback';
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                      */
@@ -182,7 +189,19 @@ function OverviewTable({ items }: { items: OverviewItem[] }) {
 /*  Seller card                                                                */
 /* -------------------------------------------------------------------------- */
 
-function SellerCard({ seller, onLogin }: { seller: SellerInfo; onLogin: () => void }) {
+function SellerCard({
+    seller,
+    onLogin,
+    onChat,
+    onReport,
+    onFeedback,
+}: {
+    seller: SellerInfo;
+    onLogin: () => void;
+    onChat: () => void;
+    onReport: () => void;
+    onFeedback: () => void;
+}) {
     const maskedPhone = `${seller.phone.slice(0, 6)}${'X'.repeat(Math.max(seller.phone.length - 6, 0))}`;
 
     return (
@@ -236,7 +255,7 @@ function SellerCard({ seller, onLogin }: { seller: SellerInfo; onLogin: () => vo
 
             <button
                 type="button"
-                onClick={onLogin}
+                onClick={onChat}
                 className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700 cursor-pointer"
             >
                 <MessageCircle className="h-4 w-4" />
@@ -245,7 +264,7 @@ function SellerCard({ seller, onLogin }: { seller: SellerInfo; onLogin: () => vo
 
             <button
                 type="button"
-                onClick={onLogin}
+                onClick={onReport}
                 className="mt-3 flex w-full items-center justify-center gap-1.5 border-t border-slate-100 pt-3 text-sm font-medium text-emerald-700 hover:text-emerald-800 cursor-pointer"
             >
                 <Flag className="h-3.5 w-3.5" />
@@ -254,7 +273,7 @@ function SellerCard({ seller, onLogin }: { seller: SellerInfo; onLogin: () => vo
 
             <button
                 type="button"
-                onClick={onLogin}
+                onClick={onFeedback}
                 className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700 cursor-pointer"
             >
                 <MessageSquare className="h-4 w-4" />
@@ -350,6 +369,48 @@ export default function ProductDetailPage({
     relatedAds,
 }: ProductDetailProps) {
     const router = useRouter();
+    const token = useAppSelector(selectToken);
+    const user = useAppSelector(selectUser);
+    const [showFeedback, setShowFeedback] = useState(false);
+    const [showReport, setShowReport] = useState(false);
+    const [startConversation, { isLoading: isStartingConversation }] =
+        useStartConversationMutation();
+
+    const requireAuthentication = (action: () => void) => {
+        if (!token) {
+            router.push('/login');
+            return;
+        }
+
+        action();
+    };
+
+    const handleChat = async () => {
+        if (!token) {
+            router.push('/login');
+            return;
+        }
+
+        try {
+            const conversation = await startConversation({
+                listingId,
+                initialMessage: 'Hi, is this item still available?',
+            }).unwrap();
+            router.push(
+                `/${user?.isSeller ? 'seller' : 'buyer'}/chat?conversationId=${conversation.id}`,
+            );
+        } catch {
+            toast.error('Unable to start the conversation. Please try again.');
+        }
+    };
+
+    if (showFeedback) {
+        return <FeedbackPage sellerName={seller.name} onBack={() => setShowFeedback(false)} />;
+    }
+
+    if (showReport) {
+        return <ReportFeedback onBack={() => setShowReport(false)} />;
+    }
 
     return (
         <div className="min-h-screen bg-[#f4f4f4]">
@@ -396,6 +457,11 @@ export default function ProductDetailPage({
                         <SellerCard
                             seller={seller}
                             onLogin={() => router.push('/login')}
+                            onChat={() => {
+                                if (!isStartingConversation) void handleChat();
+                            }}
+                            onReport={() => requireAuthentication(() => setShowReport(true))}
+                            onFeedback={() => requireAuthentication(() => setShowFeedback(true))}
                         />
                     </div>
                 </div>
