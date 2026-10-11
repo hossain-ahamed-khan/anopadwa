@@ -72,6 +72,110 @@ type AdminDashboardOverviewResponse = {
     data: AdminDashboardOverview;
 };
 
+export type AdminSellerProfileSummary = {
+    id: string;
+    storeName: string;
+    sellerType: "individual" | "business";
+    accountStatus: "active" | "suspended";
+    isVerified: boolean;
+};
+
+export type AdminUser = {
+    id: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    profilePhotoUrl: string | null;
+    isEmailVerified: boolean;
+    isPhoneVerified: boolean;
+    isSeller: boolean;
+    isActive: boolean;
+    tokenVersion: number;
+    createdAt: string;
+    updatedAt: string;
+    sellerProfile: AdminSellerProfileSummary | null;
+    _count: {
+        listings: number;
+        authoredReviews?: number;
+        sellerReviews?: number;
+    };
+};
+
+export type AdminUserDetails = AdminUser & {
+    sellerProfile: (AdminSellerProfileSummary & {
+        userId: string;
+        businessLogoUrl: string | null;
+        about: string | null;
+        businessType: string | null;
+        customersServed: string | null;
+        responseTime: string | null;
+        regionId: string | null;
+        districtId: string | null;
+        addressLine: string | null;
+        avgRating: string;
+        reviewCount: number;
+        createdAt: string;
+        updatedAt: string;
+        region: { id: string; name: string; isEnabled: boolean } | null;
+        district: { id: string; regionId: string; name: string; isEnabled: boolean } | null;
+    }) | null;
+    businessDocuments: Array<{
+        id: string;
+        documentUrl: string;
+        status: string;
+        requestedAt: string | null;
+        submittedAt: string | null;
+        verifiedAt: string | null;
+    }>;
+};
+
+type AdminUsersResponse = {
+    success: boolean;
+    data: { users: AdminUser[] };
+    meta: { total: number; page: number; limit: number; totalPages: number };
+};
+
+type AdminUserResponse = {
+    success: boolean;
+    data: { user: AdminUserDetails };
+};
+
+type AdminActionResponse = {
+    success: boolean;
+    data: {
+        user?: AdminUser;
+        profile?: AdminUserDetails["sellerProfile"];
+        message: string;
+    };
+};
+
+export type AdminDocument = {
+    id: string;
+    sellerId: string;
+    documentUrl: string;
+    status: "submitted" | "verified" | "rejected" | string;
+    requestedAt: string | null;
+    submittedAt: string | null;
+    verifiedAt: string | null;
+    verifiedBy: string | null;
+    createdAt: string;
+    updatedAt: string;
+    verifiedByAdmin: string | null;
+};
+
+type AdminDocumentsResponse = {
+    success: boolean;
+    data: { documents: AdminDocument[] };
+};
+
+type AdminDocumentActionResponse = {
+    success: boolean;
+    data: {
+        document: AdminDocument;
+        message: string;
+    };
+};
+
 const adminApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getAdminDashboardOverview: builder.query<AdminDashboardOverview, void>({
@@ -81,7 +185,81 @@ const adminApi = baseApi.injectEndpoints({
             }),
             transformResponse: (response: AdminDashboardOverviewResponse) => response.data,
         }),
+        getAdminUsers: builder.query<
+            AdminUsersResponse,
+            { page?: number; limit?: number; search?: string }
+        >({
+            query: ({ page = 1, limit = 20, search = "" }) => ({
+                url: "/admin/users",
+                method: "GET",
+                params: { page, limit, ...(search ? { search } : {}) },
+            }),
+            providesTags: ["Users"],
+        }),
+        getAdminUser: builder.query<AdminUserDetails, string>({
+            query: (id) => `/admin/users/${id}`,
+            transformResponse: (response: AdminUserResponse) => response.data.user,
+            providesTags: (_result, _error, id) => [{ type: "Users", id }],
+        }),
+        getAdminUserDocuments: builder.query<AdminDocument[], string>({
+            query: (id) => `/admin/users/${id}/documents`,
+            transformResponse: (response: AdminDocumentsResponse) => response.data.documents,
+            providesTags: (_result, _error, id) => [{ type: "Users", id: `documents-${id}` }],
+        }),
+        verifyAdminUserDocument: builder.mutation<AdminDocumentActionResponse, string>({
+            query: (id) => ({
+                url: `/admin/users/${id}/documents/verify`,
+                method: "POST",
+            }),
+            invalidatesTags: (_result, _error, id) => [
+                "Users",
+                { type: "Users", id },
+                { type: "Users", id: `documents-${id}` },
+            ],
+        }),
+        rejectAdminUserDocument: builder.mutation<
+            AdminDocumentActionResponse,
+            { id: string; reason: string }
+        >({
+            query: ({ id, reason }) => ({
+                url: `/admin/users/${id}/documents/reject`,
+                method: "POST",
+                body: { reason },
+            }),
+            invalidatesTags: (_result, _error, { id }) => [
+                "Users",
+                { type: "Users", id },
+                { type: "Users", id: `documents-${id}` },
+            ],
+        }),
+        activateAdminUser: builder.mutation<AdminActionResponse, string>({
+            query: (id) => ({ url: `/admin/users/${id}/activate`, method: "POST" }),
+            invalidatesTags: (_result, _error, id) => ["Users", { type: "Users", id }],
+        }),
+        deactivateAdminUser: builder.mutation<AdminActionResponse, string>({
+            query: (id) => ({ url: `/admin/users/${id}/deactivate`, method: "POST" }),
+            invalidatesTags: (_result, _error, id) => ["Users", { type: "Users", id }],
+        }),
+        suspendAdminSeller: builder.mutation<AdminActionResponse, string>({
+            query: (id) => ({ url: `/admin/users/${id}/suspend-seller`, method: "POST" }),
+            invalidatesTags: (_result, _error, id) => ["Users", { type: "Users", id }],
+        }),
+        reactivateAdminSeller: builder.mutation<AdminActionResponse, string>({
+            query: (id) => ({ url: `/admin/users/${id}/reactivate-seller`, method: "POST" }),
+            invalidatesTags: (_result, _error, id) => ["Users", { type: "Users", id }],
+        }),
     }),
 });
 
-export const { useGetAdminDashboardOverviewQuery } = adminApi;
+export const {
+    useGetAdminDashboardOverviewQuery,
+    useGetAdminUsersQuery,
+    useGetAdminUserQuery,
+    useGetAdminUserDocumentsQuery,
+    useVerifyAdminUserDocumentMutation,
+    useRejectAdminUserDocumentMutation,
+    useActivateAdminUserMutation,
+    useDeactivateAdminUserMutation,
+    useSuspendAdminSellerMutation,
+    useReactivateAdminSellerMutation,
+} = adminApi;

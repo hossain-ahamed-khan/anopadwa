@@ -50,11 +50,6 @@ export default function AdminDashboardPage() {
 
     return (
         <div className="space-y-6 p-8">
-            {/* Greeting */}
-            <div className="rounded-2xl bg-white px-6 py-5">
-                <p className="text-sm text-gray-500">Hi, 👋 Good Morning</p>
-                <p className="text-xl font-bold text-gray-900">Moni Roy</p>
-            </div>
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="rounded-2xl bg-white p-6">
