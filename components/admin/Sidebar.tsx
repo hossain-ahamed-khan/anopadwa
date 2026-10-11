@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import mainLogo from "@/public/image/anopadwa-logo.png";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
     Users,
@@ -15,7 +15,13 @@ import {
     MonitorPlay,
     ScanFace,
     Settings,
+    LogOut,
 } from "lucide-react";
+import Swal from "sweetalert2";
+import { toast } from "sonner";
+import { useAppDispatch } from "@/redux/hooks";
+import { logout } from "@/redux/features/auth/authSlice";
+import { baseApi } from "@/redux/api/baseApi";
 
 const NAV_ITEMS = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -50,9 +56,33 @@ const DEFAULT_ACTIVE_HREF = "/admin";
 
 export default function Sidebar() {
     const pathname = usePathname() ?? "";
+    const router = useRouter();
+    const dispatch = useAppDispatch();
     const activeHref =
         NAV_ITEMS.find((item) => isRouteActive(pathname, item.href))?.href ??
         DEFAULT_ACTIVE_HREF;
+
+    const handleLogout = async () => {
+        const result = await Swal.fire({
+            title: "Log out?",
+            text: "Are you sure you want to log out?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#dc2626",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Yes, log out",
+            cancelButtonText: "Cancel",
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        dispatch(logout());
+        dispatch(baseApi.util.resetApiState());
+        router.replace("/admin-login");
+        toast.success("Logged out successfully");
+    };
 
     return (
         <aside className="relative flex h-full w-64 shrink-0 flex-col bg-[#1C1C1E] py-6">
@@ -96,6 +126,15 @@ export default function Sidebar() {
                     );
                 })}
             </nav>
+
+            <button
+                type="button"
+                onClick={handleLogout}
+                className="mx-3 mt-4 flex items-center gap-3 rounded-md border-t border-white/10 px-4 pt-5 text-sm font-medium text-red-300 transition-colors hover:bg-white/5 hover:text-red-200 cursor-pointer"
+            >
+                <LogOut size={18} strokeWidth={2} />
+                <span>Logout</span>
+            </button>
         </aside>
     );
 }

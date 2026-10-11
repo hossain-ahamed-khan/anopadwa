@@ -3,30 +3,18 @@
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChevronDown } from "lucide-react";
 
-const data = [
-    { month: "January", revenue: 8000 },
-    { month: "January", revenue: 9500 },
-    { month: "February", revenue: 7000 },
-    { month: "February", revenue: 10500 },
-    { month: "March", revenue: 12000 },
-    { month: "March", revenue: 19500 },
-    { month: "April", revenue: 13000 },
-    { month: "April", revenue: 15500 },
-    { month: "May", revenue: 18500 },
-    { month: "May", revenue: 11000 },
-    { month: "June", revenue: 9500 },
-    { month: "June", revenue: 8500 },
-    { month: "July", revenue: 7500 },
-    { month: "July", revenue: 8000 },
-];
+interface EarningsChartProps {
+    data: Array<{ month: string; revenue: number }>;
+    timeframe: string;
+}
 
-export default function EarningsChart() {
+export default function EarningsChart({ data, timeframe }: EarningsChartProps) {
     return (
         <div className="rounded-2xl bg-white p-6">
             <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-base font-bold text-gray-900">Earnings</h3>
                 <button className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600">
-                    Last 6 Months
+                    {timeframe.replaceAll("_", " ")}
                     <ChevronDown size={14} />
                 </button>
             </div>

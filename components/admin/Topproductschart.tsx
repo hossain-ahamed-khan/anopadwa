@@ -3,23 +3,17 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChevronDown } from "lucide-react";
 
-const data = [
-    { product: "17 Pro Mobile", units: 45 },
-    { product: "Car", units: 195 },
-    { product: "Toyota Car", units: 95 },
-    { product: "Benz 14 Gen", units: 155 },
-    { product: "Audi 18", units: 115 },
-    { product: "18 Pro", units: 60 },
-    { product: "Seden Car", units: 100 },
-].reverse();
+interface TopProductsChartProps {
+    data: Array<{ title: string; views: number }>;
+}
 
-export default function TopProductsChart() {
+export default function TopProductsChart({ data }: TopProductsChartProps) {
     return (
         <div className="rounded-2xl bg-white p-6">
             <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-base font-bold text-gray-900">Top Products</h3>
                 <button className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600">
-                    Last Months
+                    Most Viewed
                     <ChevronDown size={14} />
                 </button>
             </div>
@@ -41,7 +35,7 @@ export default function TopProductsChart() {
                         />
                         <YAxis
                             type="category"
-                            dataKey="product"
+                            dataKey="title"
                             tickLine={false}
                             axisLine={false}
                             width={90}
@@ -51,7 +45,7 @@ export default function TopProductsChart() {
                             cursor={{ fill: "rgba(99,102,241,0.06)" }}
                             contentStyle={{ borderRadius: 12, border: "1px solid #F1F1F1" }}
                         />
-                        <Bar dataKey="units" fill="#818CF8" radius={[0, 4, 4, 0]} maxBarSize={16} />
+                        <Bar dataKey="views" fill="#818CF8" radius={[0, 4, 4, 0]} maxBarSize={16} />
                     </BarChart>
                 </ResponsiveContainer>
             </div>

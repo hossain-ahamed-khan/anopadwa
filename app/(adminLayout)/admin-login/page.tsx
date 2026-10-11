@@ -8,13 +8,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import mainLogo from "@/public/image/anopadwa-logo.png";
 import { useAppDispatch } from "@/redux/hooks";
-import { login } from "@/redux/features/auth/authSlice";
-import { useLoginMutation } from "@/redux/features/auth/authApi";
+import { adminLogin } from "@/redux/features/auth/authSlice";
+import { useAdminLoginMutation } from "@/redux/features/auth/authApi";
 
 export default function SignInPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
-    const [loginUser, { isLoading }] = useLoginMutation();
+    const [loginAdmin, { isLoading }] = useAdminLoginMutation();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -24,12 +24,12 @@ export default function SignInPage() {
         e.preventDefault();
 
         try {
-            const response = await loginUser({ email: email.trim(), password }).unwrap();
-            const { user, accessToken, refreshToken } = response.data;
+            const response = await loginAdmin({ email: email.trim(), password }).unwrap();
+            const { admin, token } = response.data;
 
-            dispatch(login({ user, token: accessToken, refreshToken }));
+            dispatch(adminLogin({ admin, token }));
             toast.success("Logged in successfully");
-            router.replace("/buyer");
+            router.replace("/admin");
         } catch (error) {
             const message =
                 typeof error === "object" &&
