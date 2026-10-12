@@ -21,7 +21,6 @@ import {
     MessageCircle,
     UserRound,
     Repeat,
-    Eye,
     X,
 } from "lucide-react";
 import FavouriteButton from "@/components/shared/FavouriteButton";
@@ -121,8 +120,10 @@ const CATEGORY_EMOJI: Record<string, string> = {
     "seeking work - cvs": "📄",
 };
 
-const INITIAL_RECENT_COUNT = 9;
-const RECENT_STEP = 9;
+const FEATURED_CARD_COUNT = 12;
+const PROMOTED_CARD_COUNT = 9;
+const INITIAL_RECENT_COUNT = 12;
+const RECENT_STEP = 12;
 const SEARCH_DEBOUNCE_MS = 400;
 const SEARCH_PAGE_SIZE = 12;
 
@@ -297,7 +298,7 @@ function CategorySidebar({
     }, [selected, rootCategories]);
 
     return (
-        <aside className="h-fit w-full shrink-0 self-start bg-white p-4 md:w-64">
+        <aside className="h-fit w-full shrink-0 self-start bg-white p-4 md:sticky md:top-4 md:w-64">
             {isLoading && (
                 <div className="space-y-2" aria-busy="true">
                     {Array.from({ length: 10 }).map((_, i) => (
@@ -507,10 +508,6 @@ function ListingCard({
                     <p className="text-base font-bold text-emerald-800">
                         {formatPrice(listing.price, listing.currency)}
                     </p>
-                    <span className="flex items-center gap-1 text-xs text-emerald-950/40">
-                        <Eye className="h-3.5 w-3.5" aria-hidden />
-                        {listing.viewsCount}
-                    </span>
                 </div>
             </div>
         </Link>
@@ -671,11 +668,11 @@ function ListingsArea({
     );
 
     const featured = useMemo(
-        () => filterListings(featuredQuery.data, filter),
+        () => filterListings(featuredQuery.data, filter).slice(0, FEATURED_CARD_COUNT),
         [featuredQuery.data, filter],
     );
     const promoted = useMemo(
-        () => filterListings(promotedQuery.data, filter),
+        () => filterListings(promotedQuery.data, filter).slice(0, PROMOTED_CARD_COUNT),
         [promotedQuery.data, filter],
     );
     const recent = useMemo(
@@ -819,7 +816,7 @@ function ListingsArea({
 
                             <ListingsSection
                                 id="latest-ads"
-                                title="Latest Posted Ad"
+                                title="Latest Posted Ads"
                                 listings={visibleRecent}
                                 isLoading={recentQuery.isLoading}
                                 isError={recentQuery.isError}
