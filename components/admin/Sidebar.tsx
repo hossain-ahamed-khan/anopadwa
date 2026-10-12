@@ -27,7 +27,7 @@ const NAV_ITEMS = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "User Management", href: "/admin/users", icon: Users },
     { label: "Administrators", href: "/admin/administrators", icon: ShieldCheck },
-    { label: "Review Listing", href: "/admin/reviews", icon: ListChecks },
+    { label: "Manage Listings", href: "/admin/listings", icon: ListChecks },
     { label: "Category Management", href: "/admin/categories", icon: Layers },
     { label: "Location Management", href: "/admin/locations", icon: MapPin },
     { label: "Promotion Type", href: "/admin/promotions", icon: Target },
