@@ -234,6 +234,7 @@ export default function ProductPage({
             description={listing.description}
             overview={overview}
             seller={{
+                id: listing.seller.id,
                 name: profile?.storeName || listing.seller?.fullName || "Seller",
                 // The API doesn't return online presence yet
                 isOnline: false,

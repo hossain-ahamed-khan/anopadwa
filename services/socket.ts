@@ -18,7 +18,7 @@ export function connectSocket(token: string): Socket {
     if (socket && connectedToken === token) return socket;
 
     socket?.disconnect();
-    socket = io("https://umber.sobhoy.com", {
+    socket = io(socketUrl || "https://umber.sobhoy.com", {
         auth: { token },
         transports: ["websocket", "polling"],
         reconnection: true,

@@ -16,11 +16,12 @@ import {
     Flag,
     MessageSquare,
     Phone,
+    ShieldCheck,
     Star,
 } from 'lucide-react';
 import FavouriteButton from '@/components/shared/FavouriteButton';
-import FeedbackPage from '@/components/buyer/product/FeedbackPage';
-import ReportFeedback from '@/components/buyer/product/ReportFeedback';
+import SellerFeedback from '@/components/shared/SellerFeedback';
+import ReportListingModal from '@/components/shared/ReportListingModal';
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                      */
@@ -42,6 +43,7 @@ export interface OverviewItem {
 }
 
 export interface SellerInfo {
+    id: string;
     name: string;
     avatarUrl?: string;
     isOnline: boolean;
@@ -193,12 +195,14 @@ function SellerCard({
     seller,
     onLogin,
     onChat,
+    isChatLoading,
     onReport,
     onFeedback,
 }: {
     seller: SellerInfo;
     onLogin: () => void;
     onChat: () => void;
+    isChatLoading: boolean;
     onReport: () => void;
     onFeedback: () => void;
 }) {
@@ -256,10 +260,12 @@ function SellerCard({
             <button
                 type="button"
                 onClick={onChat}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700 cursor-pointer"
+                disabled={isChatLoading}
+                aria-busy={isChatLoading}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
             >
                 <MessageCircle className="h-4 w-4" />
-                Chat
+                {isChatLoading ? 'Starting chat...' : 'Chat'}
             </button>
 
             <button
@@ -280,6 +286,43 @@ function SellerCard({
                 {seller.feedbackCount} Feedback
             </button>
         </div>
+    );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Safety tips                                                                */
+/* -------------------------------------------------------------------------- */
+
+const safetyTips = [
+    'Meet sellers in safe public locations.',
+    'Inspect items before making payment.',
+    'Avoid advance payments to unknown sellers.',
+    'Report suspicious listings or sellers.',
+];
+
+function SafetyTipsCard() {
+    return (
+        <aside className="rounded-xl border border-slate-200 bg-white p-5 mt-4">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                Safety Tips
+            </h2>
+            <ul className="mt-3 space-y-2.5">
+                {safetyTips.map((tip) => (
+                    <li key={tip} className="flex items-start gap-2 text-xs leading-relaxed text-slate-600">
+                        <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-emerald-500" />
+                        {tip}
+                    </li>
+                ))}
+            </ul>
+            <Link
+                href="/safety-tips"
+                className="mt-4 inline-flex text-xs font-medium text-emerald-700 hover:text-emerald-800"
+            >
+                Learn more about staying safe
+                <ChevronRight className="ml-1 h-3.5 w-3.5" />
+            </Link>
+        </aside>
     );
 }
 
@@ -396,20 +439,21 @@ export default function ProductDetailPage({
                 listingId,
                 initialMessage: 'Hi, is this item still available?',
             }).unwrap();
-            router.push(
-                `/${user?.isSeller ? 'seller' : 'buyer'}/chat?conversationId=${conversation.id}`,
-            );
+            router.push(`/buyer/chat?conversationId=${conversation.id}`);
         } catch {
             toast.error('Unable to start the conversation. Please try again.');
         }
     };
 
     if (showFeedback) {
-        return <FeedbackPage sellerName={seller.name} onBack={() => setShowFeedback(false)} />;
-    }
-
-    if (showReport) {
-        return <ReportFeedback onBack={() => setShowReport(false)} />;
+        return (
+            <SellerFeedback
+                sellerId={seller.id}
+                sellerName={seller.name}
+                canReply={Boolean(user?.isSeller && user.id === seller.id)}
+                onBack={() => setShowFeedback(false)}
+            />
+        );
     }
 
     return (
@@ -457,12 +501,12 @@ export default function ProductDetailPage({
                         <SellerCard
                             seller={seller}
                             onLogin={() => router.push('/login')}
-                            onChat={() => {
-                                if (!isStartingConversation) void handleChat();
-                            }}
+                            onChat={() => void handleChat()}
+                            isChatLoading={isStartingConversation}
                             onReport={() => requireAuthentication(() => setShowReport(true))}
                             onFeedback={() => requireAuthentication(() => setShowFeedback(true))}
                         />
+                        <SafetyTipsCard />
                     </div>
                 </div>
             </div>
@@ -475,6 +519,13 @@ export default function ProductDetailPage({
                         ))}
                     </div>
                 </section>
+            )}
+            {showReport && (
+                <ReportListingModal
+                    listingId={listingId}
+                    listingTitle={title}
+                    onClose={() => setShowReport(false)}
+                />
             )}
         </div>
     );

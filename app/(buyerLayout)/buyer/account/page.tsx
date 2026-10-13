@@ -12,7 +12,6 @@ import {
     MessageSquare,
 } from "lucide-react";
 import productImage from "@/public/image/product-image.png";
-import MessagesPage from "@/components/buyer/chat/Message";
 import { useAppDispatch } from "@/redux/hooks";
 import { logout } from "@/redux/features/auth/authSlice";
 import { baseApi } from "@/redux/api/baseApi";
@@ -341,7 +340,7 @@ export default function AccountPage() {
                                     }`}
                             >
                                 <LayoutDashboard className="h-4 w-4" />
-                                Dashboard
+                                My Profile
                             </button>
                             <button
                                 type="button"
@@ -356,7 +355,7 @@ export default function AccountPage() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setActiveView("chat")}
+                                onClick={() => router.push("/buyer/chat")}
                                 className={`flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm font-semibold transition-colors cursor-pointer ${activeView === "chat"
                                     ? "bg-[#e7f1ed] text-emerald-700"
                                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
@@ -384,7 +383,7 @@ export default function AccountPage() {
                         </button>
                     </aside>
 
-                    {activeView === "favourites" ? <FavouritesView /> : activeView === "chat" ? <MessagesPage /> : <section className="min-w-0">
+                    {activeView === "favourites" ? <FavouritesView /> : <section className="min-w-0">
                         <div className="flex items-center gap-4 rounded-xl bg-white px-5 py-5 shadow-sm sm:px-6">
                             {isProfileLoading ? (
                                 <>

@@ -14,6 +14,7 @@ import {
     Target,
     MonitorPlay,
     ScanFace,
+    Flag,
     Settings,
     LogOut,
 } from "lucide-react";
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
     { label: "Promotion Type", href: "/admin/promotions", icon: Target },
     { label: "Subscription Model", href: "/admin/subscriptions", icon: MonitorPlay },
     { label: "Fraud Detection", href: "/admin/fraud-detection", icon: ScanFace },
+    { label: "Reports", href: "/admin/reports", icon: Flag },
     { label: "Settings", href: "/admin/settings", icon: Settings },
 ] as const;
 

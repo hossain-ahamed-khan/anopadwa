@@ -95,6 +95,25 @@ export type MyListingsResponse = {
     };
 };
 
+export type ListingPerformance = {
+    listingId: string;
+    title: string;
+    status: string;
+    viewsCount: number;
+    favoritesCount: number;
+    inquiriesCount: number;
+    ageInDays: number;
+    publishedAt: string | null;
+    createdAt: string;
+};
+
+export type ListingPerformanceResponse = {
+    success: boolean;
+    data: {
+        performance: ListingPerformance;
+    };
+};
+
 // Fields sent as multipart/form-data when creating a listing.
 // Build a FormData from this and append every image under the "images" key.
 export type CreateListingFields = {
@@ -141,6 +160,14 @@ export type DeleteListingResponse = {
     };
 };
 
+export type MarkListingSoldResponse = {
+    success: boolean;
+    data: {
+        listing: ListingDetail;
+        message: string;
+    };
+};
+
 const listingsApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getMyListings: builder.query<MyListingsResponse, GetMyListingsParams | void>({
@@ -150,6 +177,15 @@ const listingsApi = baseApi.injectEndpoints({
                 params: params ?? undefined,
             }),
             providesTags: ['Listings'],
+        }),
+
+        getListingPerformance: builder.query<ListingPerformance, string>({
+            query: (id) => ({
+                url: `/listings/${id}/performance`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ListingPerformanceResponse) =>
+                response.data.performance,
         }),
 
         createListing: builder.mutation<CreateListingResponse, FormData>({
@@ -177,12 +213,23 @@ const listingsApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['Listings'],
         }),
+
+        markListingSold: builder.mutation<MarkListingSoldResponse, string>({
+            query: (id) => ({
+                url: `/listings/${id}/mark-sold`,
+                method: 'POST',
+            }),
+            invalidatesTags: ['Listings'],
+        }),
     }),
 });
 
 export const {
     useGetMyListingsQuery,
+    useGetListingPerformanceQuery,
+    useLazyGetListingPerformanceQuery,
     useCreateListingMutation,
     useUpdateListingMutation,
     useDeleteListingMutation,
+    useMarkListingSoldMutation,
 } = listingsApi;

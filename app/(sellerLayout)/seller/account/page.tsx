@@ -1,72 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
+import { toast } from "sonner";
 import ListingsView from "@/components/seller/account/MyListing";
 import {
     CheckCircle2,
-    Clock3,
+    Eye,
     Heart,
     LayoutDashboard,
     LogOut,
-    MessageSquare,
-    TriangleAlert,
+    MessageCircle,
+    Percent,
     Layers3,
     ClipboardList,
     LineChart,
     User,
-    ShieldCheck,
-    PlusCircle,
 } from "lucide-react";
 import ListingPerformanceView from "@/components/seller/account/ListingPerformance";
-import FavouritesView from "@/components/seller/account/Favourites";
-import MessagesPage from "@/components/seller/account/Chat";
 import AccountDetailsView from "@/components/seller/account/AccountDetails";
-import PrivacySettingsView from "@/components/seller/account/PrivacySetting";
-
-const stats = [
-    {
-        label: "Total Listings",
-        value: "0",
-        icon: Layers3,
-        iconClassName: "bg-blue-50 text-blue-500",
-    },
-    {
-        label: "Published Listings",
-        value: "0",
-        icon: CheckCircle2,
-        iconClassName: "bg-emerald-50 text-emerald-600",
-    },
-    {
-        label: "Pending Listings",
-        value: "0",
-        icon: Clock3,
-        iconClassName: "bg-orange-50 text-orange-500",
-    },
-    {
-        label: "Expired Listings",
-        value: "0",
-        icon: TriangleAlert,
-        iconClassName: "bg-red-50 text-red-500",
-    },
-];
-
-const favourites = Array.from({ length: 3 }, (_, index) => ({
-    id: `favourite-${index}`,
-    title: "T-shirts with multiple colors, for men and lady",
-    details: "Size: medium, Color: blue, Material: Plastic",
-    seller: "Artel Market",
-    price: "₵78.99",
-}));
+import { useGetSellerAnalyticsQuery } from "@/redux/features/seller/analytics/analyticsApi";
+import { useAppDispatch } from "@/redux/hooks";
+import { logout } from "@/redux/features/auth/authSlice";
+import { baseApi } from "@/redux/api/baseApi";
 
 type AccountView =
     | "dashboard"
     | "listings"
     | "performance"
-    | "favourites"
-    | "chat"
-    | "account"
-    | "privacy";
+    | "account";
 
 const NAV_ITEMS: {
     id: AccountView;
@@ -77,86 +40,148 @@ const NAV_ITEMS: {
         { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
         { id: "listings", label: "My Listings", icon: ClipboardList },
         { id: "performance", label: "Listing Performance", icon: LineChart },
-        { id: "favourites", label: "Favourites", icon: Heart },
-        { id: "chat", label: "Chat", icon: MessageSquare, badge: 0 },
         { id: "account", label: "Account Details", icon: User },
-        { id: "privacy", label: "Privacy Settings", icon: ShieldCheck },
     ];
 
-function EmptyStateView({
-    title,
-    description,
-}: {
-    title: string;
-    description: string;
-}) {
-    return (
-        <section className="flex min-h-64 flex-col items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
-            <h2 className="text-sm font-semibold text-slate-800">{title}</h2>
-            <p className="mt-2 max-w-sm text-sm text-slate-400">{description}</p>
-        </section>
-    );
-}
-
 function DashboardView() {
-    return (
-        <section className="min-w-0">
-            <div className="flex items-center gap-4 rounded-xl bg-white px-5 py-5 shadow-sm sm:px-6">
-                <Image
-                    src="https://i.pravatar.cc/96?img=12"
-                    alt="Ovie Rahaman"
-                    width={56}
-                    height={56}
-                    className="h-14 w-14 rounded-full border border-slate-200 object-cover"
-                />
-                <div>
-                    <h2 className="text-base font-bold">Ovie Rahaman</h2>
-                    <p className="mt-1 text-sm text-slate-500">
-                        <span className="font-semibold text-slate-700">Email:</span>{" "}
-                        ovierahaman1@gmail.com
-                    </p>
-                </div>
-            </div>
+    const { data: analytics, isLoading, isError, refetch } =
+        useGetSellerAnalyticsQuery();
 
-            <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                {stats.map(({ label, value, icon: Icon, iconClassName }) => (
+    if (isLoading) {
+        return (
+            <section className="grid w-full min-w-0 gap-5 sm:grid-cols-2">
+                {Array.from({ length: 6 }, (_, index) => (
                     <div
-                        key={label}
-                        className="flex min-h-22 items-center gap-4 rounded-xl bg-white px-5 shadow-sm"
+                        key={index}
+                        className="flex min-h-22 animate-pulse items-center gap-4 rounded-xl bg-white px-5 shadow-sm"
                     >
-                        <span
-                            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${iconClassName}`}
-                        >
-                            <Icon className="h-5 w-5" />
-                        </span>
-                        <div>
-                            <p className="text-xs text-slate-500">{label}</p>
-                            <p className="mt-1 text-xl font-bold">{value}</p>
+                        <div className="h-11 w-11 rounded-lg bg-slate-100" />
+                        <div className="space-y-2">
+                            <div className="h-3 w-24 rounded bg-slate-100" />
+                            <div className="h-6 w-12 rounded bg-slate-100" />
                         </div>
                     </div>
                 ))}
-            </div>
+            </section>
+        );
+    }
+
+    if (isError || !analytics) {
+        return (
+            <section className="flex min-h-64 flex-col items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
+                <h2 className="text-sm font-semibold text-slate-800">
+                    Unable to load dashboard analytics
+                </h2>
+                <p className="mt-2 max-w-sm text-sm text-slate-400">
+                    Please try again to load your latest account statistics.
+                </p>
+                <button
+                    type="button"
+                    onClick={() => void refetch()}
+                    className="mt-4 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900"
+                >
+                    Try again
+                </button>
+            </section>
+        );
+    }
+
+    const stats = [
+        {
+            label: "Total Listings",
+            value: analytics.totalListings.toString(),
+            icon: Layers3,
+            iconClassName: "bg-blue-50 text-blue-500",
+        },
+        {
+            label: "Active Listings",
+            value: analytics.activeListings.toString(),
+            icon: CheckCircle2,
+            iconClassName: "bg-emerald-50 text-emerald-600",
+        },
+        {
+            label: "Total Views",
+            value: analytics.totalViews.toLocaleString(),
+            icon: Eye,
+            iconClassName: "bg-orange-50 text-orange-500",
+        },
+        {
+            label: "Total Favourites",
+            value: analytics.totalFavorites.toLocaleString(),
+            icon: Heart,
+            iconClassName: "bg-red-50 text-red-500",
+        },
+        {
+            label: "Total Inquiries",
+            value: analytics.totalInquiries.toLocaleString(),
+            icon: MessageCircle,
+            iconClassName: "bg-violet-50 text-violet-500",
+        },
+        {
+            label: "Engagement Rate",
+            value: `${(analytics.engagementRate * 100).toFixed(1)}%`,
+            icon: Percent,
+            iconClassName: "bg-cyan-50 text-cyan-500",
+        },
+    ];
+
+    return (
+        <section className="grid w-full min-w-0 gap-5 sm:grid-cols-2">
+            {stats.map(({ label, value, icon: Icon, iconClassName }) => (
+                <div
+                    key={label}
+                    className="flex min-h-22 items-center gap-4 rounded-xl bg-white px-5 shadow-sm"
+                >
+                    <span
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${iconClassName}`}
+                    >
+                        <Icon className="h-5 w-5" />
+                    </span>
+                    <div>
+                        <p className="text-xs text-slate-500">{label}</p>
+                        <p className="mt-1 text-xl font-bold">{value}</p>
+                    </div>
+                </div>
+            ))}
         </section>
     );
 }
 
 export default function AccountPage() {
+    const router = useRouter();
+    const dispatch = useAppDispatch();
     const [activeView, setActiveView] = useState<AccountView>("dashboard");
+
+    const handleLogout = async () => {
+        const result = await Swal.fire({
+            title: "Log out?",
+            text: "Are you sure you want to log out?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#dc2626",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Yes, log out",
+            cancelButtonText: "Cancel",
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        dispatch(logout());
+        dispatch(baseApi.util.resetApiState());
+        router.replace("/login");
+        toast.success("Logged out successfully");
+    };
 
     const renderView = () => {
         switch (activeView) {
-            case "favourites":
-                return <FavouritesView />;
-            case "chat":
-                return <MessagesPage />;
             case "listings":
                 return <ListingsView />;
             case "performance":
                 return <ListingPerformanceView />;
             case "account":
                 return <AccountDetailsView />;
-            case "privacy":
-                return <PrivacySettingsView />;
             default:
                 return <DashboardView />;
         }
@@ -196,18 +221,11 @@ export default function AccountPage() {
                         <div className="mt-auto space-y-4 border-t border-slate-100 pt-6">
                             <button
                                 type="button"
+                                onClick={handleLogout}
                                 className="flex items-center gap-3 px-3 text-sm font-semibold text-red-600 cursor-pointer"
                             >
                                 <LogOut className="h-4 w-4" />
                                 Logout
-                            </button>
-
-                            <button
-                                type="button"
-                                className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-800 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 cursor-pointer"
-                            >
-                                <PlusCircle className="h-4 w-4" />
-                                Add Listing
                             </button>
                         </div>
                     </aside>

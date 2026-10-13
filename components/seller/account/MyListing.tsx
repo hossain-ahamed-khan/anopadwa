@@ -16,6 +16,7 @@ import {
 import {
     useDeleteListingMutation,
     useGetMyListingsQuery,
+    useMarkListingSoldMutation,
     useUpdateListingMutation,
     type ListingStatus as ApiListingStatus,
     type MyListing,
@@ -51,10 +52,10 @@ type EditForm = {
 const formatDate = (date: string | null) =>
     date
         ? new Intl.DateTimeFormat("en", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-          }).format(new Date(date))
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        }).format(new Date(date))
         : "-";
 
 const formatError = (error: unknown, fallback: string) => {
@@ -189,6 +190,7 @@ export default function ListingsView() {
     });
     const [updateListing, { isLoading: isUpdating }] = useUpdateListingMutation();
     const [deleteListing, { isLoading: isDeleting }] = useDeleteListingMutation();
+    const [markListingSold, { isLoading: isMarkingSold }] = useMarkListingSoldMutation();
 
     const listings = data?.data.listings ?? [];
 
@@ -237,6 +239,27 @@ export default function ListingsView() {
             toast.success("Listing updated successfully.");
         } catch (error) {
             toast.error(formatError(error, "Unable to update this listing."));
+        }
+    };
+
+    const handleMarkAsRead = async (listing: MyListing) => {
+        if (isMarkingSold || listing.status === "sold") return;
+        const result = await Swal.fire({
+            title: "Mark this listing as sold?",
+            text: "This action will mark the listing as sold.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#059669",
+            confirmButtonText: "Mark as sold",
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            const response = await markListingSold(listing.id).unwrap();
+            setOpenMenuId(null);
+            toast.success(response.data.message || "Listing marked as sold successfully.");
+        } catch (error) {
+            toast.error(formatError(error, "Unable to mark this listing as sold."));
         }
     };
 
@@ -343,7 +366,7 @@ export default function ListingsView() {
                                                 <MoreHorizontal className="h-4 w-4" />
                                             </button>
                                             {openMenuId === listing.id && (
-                                                <div className="absolute right-0 top-9 z-20 w-32 rounded-lg border border-slate-200 bg-white py-1 text-sm shadow-md">
+                                                <div className="absolute right-0 top-9 z-20 w-40 rounded-lg border border-slate-200 bg-white py-1 text-sm shadow-md">
                                                     <button
                                                         type="button"
                                                         onClick={() => router.push(`/seller/product/${listing.id}`)}
@@ -358,6 +381,16 @@ export default function ListingsView() {
                                                     >
                                                         Edit
                                                     </button>
+                                                    {listing.status !== "sold" && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => void handleMarkAsRead(listing)}
+                                                            disabled={isMarkingSold}
+                                                            className="block w-full px-3 py-1.5 text-left text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                                        >
+                                                            Mark As Sold
+                                                        </button>
+                                                    )}
                                                     <button
                                                         type="button"
                                                         onClick={() => void handleDelete(listing)}

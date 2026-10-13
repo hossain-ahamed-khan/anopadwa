@@ -1,4 +1,4 @@
-import ChatScreen from "@/components/chat/ChatScreen";
+import ChatScreen from "@/components/buyer/chat/ChatScreen";
 
 export default function ChatPage() {
     return (
