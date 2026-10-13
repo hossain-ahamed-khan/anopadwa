@@ -1,5 +1,4 @@
 import { baseApi } from "@/redux/api/baseApi";
-import type { ListingImage } from "@/redux/features/seller/createListing/listingApi";
 
 export type AdminDashboardOverview = {
     headerStats: {
@@ -284,52 +283,156 @@ type AdminListingActionResponse = {
 export type AdminReportStatus = "pending" | "reviewed" | "dismissed" | "action_taken";
 
 export type AdminListingReport = {
+    id: string;
+    listingId: string;
+    reporterUserId: string;
+    reason: string;
+    details: string | null;
+    status: AdminReportStatus;
+    actionTaken?: string | null;
+    createdAt: string;
+    reviewedBy?: string | null;
+    reviewedAt?: string | null;
+    listing: {
         id: string;
-        listingId: string;
-        reporterUserId: string;
-        reason: string;
-        details: string | null;
-        status: AdminReportStatus;
-        actionTaken?: string | null;
-        createdAt: string;
-        reviewedBy?: string | null;
-        reviewedAt?: string | null;
-        listing: {
-            id: string;
-            title: string;
-            status: string;
-            price: number | string;
-            sellerId: string;
-            seller: {
-                id: string;
-                fullName: string;
-                email: string;
-            };
-            images: Array<{ imageUrl: string }>;
-        };
-        reporter: {
+        title: string;
+        status: string;
+        price: number | string;
+        sellerId: string;
+        seller: {
             id: string;
             fullName: string;
             email: string;
         };
-        reviewer: {
-            id: string;
-            fullName: string;
-            email: string;
-        } | null;
+        images: Array<{ imageUrl: string }>;
+    };
+    reporter: {
+        id: string;
+        fullName: string;
+        email: string;
+    };
+    reviewer: {
+        id: string;
+        fullName: string;
+        email: string;
+    } | null;
 };
 
 type AdminReportsResponse = {
-        success: boolean;
-        data: { reports: AdminListingReport[] };
-        meta: { total: number; page: number; limit: number; totalPages: number };
+    success: boolean;
+    data: { reports: AdminListingReport[] };
+    meta: { total: number; page: number; limit: number; totalPages: number };
 };
 
 type AdminReportActionResponse = {
-        success: boolean;
-        data: {
-            report: AdminListingReport;
-            message: string;
+    success: boolean;
+    data: {
+        report: AdminListingReport;
+        message: string;
+    };
+};
+
+export type AdminListing = {
+    id: string;
+    sellerId: string;
+    title: string;
+    price: string;
+    currency: string;
+    status: "pending" | "approved" | "rejected" | "deactivated" | "draft" | "sold" | "expired";
+    createdAt: string;
+    rejectionReason: string | null;
+    images: ListingImage[];
+    category: {
+        id: string;
+        name: string;
+    };
+    seller: {
+        id: string;
+        fullName: string;
+        email: string;
+        phone: string;
+        sellerProfile: {
+            storeName: string;
+            sellerType: "individual" | "business";
+            accountStatus: "active" | "suspended";
+        } | null;
+    };
+};
+
+export type AdminListingDetails = Omit<AdminListing, "category" | "seller"> & {
+    description: string;
+    condition: string;
+    pricingType: string;
+    contactPhone: string | null;
+    contactWhatsapp: string | null;
+    contactEmail: string | null;
+    viewsCount: number;
+    favoritesCount: number;
+    inquiriesCount: number;
+    publishedAt: string | null;
+    expiresAt: string | null;
+    category: {
+        id: string;
+        parentCategoryId: string | null;
+        name: string;
+        isActive: boolean;
+        createdAt: string;
+    };
+    rootCategory?: {
+        id: string;
+        name: string;
+    } | null;
+    region?: {
+        id: string;
+        name: string;
+    } | null;
+    district?: {
+        id: string;
+        name: string;
+    } | null;
+    town?: {
+        id: string;
+        name: string;
+    } | null;
+    attributeValues: Array<{
+        valueText: string | null;
+        valueNumber: string | null;
+        categoryAttribute?: {
+            name: string;
+        } | null;
+    }>;
+    seller: {
+        id: string;
+        fullName: string;
+        profilePhotoUrl?: string | null;
+        sellerProfile: {
+            storeName: string;
+            sellerType: "individual" | "business";
+            accountStatus: "active" | "suspended";
+            isVerified?: boolean;
+        } | null;
+    };
+};
+
+type AdminListingDetailsResponse = {
+    success: boolean;
+    data: {
+        listing: AdminListingDetails;
+    };
+};
+
+type AdminListingsResponse = {
+    success: boolean;
+    data: { listings: AdminListing[] };
+    meta: { total: number; page: number; limit: number; totalPages: number };
+};
+
+type AdminListingActionResponse = {
+    success: boolean;
+    data: {
+        listing?: AdminListing;
+        reason?: string;
+        message: string;
     };
 };
 
@@ -362,92 +465,6 @@ const adminApi = baseApi.injectEndpoints({
             query: (id) => `/admin/users/${id}/documents`,
             transformResponse: (response: AdminDocumentsResponse) => response.data.documents,
             providesTags: (_result, _error, id) => [{ type: "Users", id: `documents-${id}` }],
-        }),
-        getAdminListings: builder.query<
-            AdminListingsResponse,
-            { page?: number; limit?: number } | void
-        >({
-            query: ({ page = 1, limit = 20 } = {}) => ({
-                url: "/admin/listings",
-                method: "GET",
-                params: { page, limit },
-            }),
-            providesTags: ["Listings"],
-        }),
-        getAdminListingReports: builder.query<
-            AdminReportsResponse,
-            {
-                page?: number;
-                limit?: number;
-                status?: AdminReportStatus | "all";
-                reason?: string;
-                listingId?: string;
-            } | void
-        >({
-            query: ({ page = 1, limit = 10, status = "all", reason = "all", listingId = "" } = {}) => ({
-                url: "/admin/listings/reports",
-                method: "GET",
-                params: {
-                    page,
-                    limit,
-                    ...(status !== "all" ? { status } : {}),
-                    ...(reason !== "all" ? { reason } : {}),
-                    ...(listingId.trim() ? { listingId: listingId.trim() } : {}),
-                },
-            }),
-            providesTags: ["Reports"],
-        }),
-        resolveAdminListingReport: builder.mutation<
-            AdminReportActionResponse,
-            {
-                id: string;
-                action: "dismissed" | "listing_marked_sold" | "listing_deactivated" | "listing_removed";
-                notes?: string;
-            }
-        >({
-            query: ({ id, action, notes }) => ({
-                url: `/admin/listings/reports/${id}`,
-                method: "PATCH",
-                body: { action, ...(notes?.trim() ? { notes: notes.trim() } : {}) },
-            }),
-            invalidatesTags: ["Reports", "Listings"],
-        }),
-        getAdminListing: builder.query<AdminListingDetails, string>({
-            query: (id) => `/listings/${id}`,
-            transformResponse: (response: AdminListingDetailsResponse) => response.data.listing,
-            providesTags: (_result, _error, id) => [{ type: "Listings", id }],
-        }),
-        approveAdminListing: builder.mutation<AdminListingActionResponse, string>({
-            query: (id) => ({
-                url: `/admin/listings/${id}/approve`,
-                method: "POST",
-            }),
-            invalidatesTags: ["Listings"],
-        }),
-        rejectAdminListing: builder.mutation<
-            AdminListingActionResponse,
-            { id: string; reason: string }
-        >({
-            query: ({ id, reason }) => ({
-                url: `/admin/listings/${id}/reject`,
-                method: "POST",
-                body: { reason },
-            }),
-            invalidatesTags: ["Listings"],
-        }),
-        deactivateAdminListing: builder.mutation<AdminListingActionResponse, string>({
-            query: (id) => ({
-                url: `/admin/listings/${id}/deactivate`,
-                method: "POST",
-            }),
-            invalidatesTags: ["Listings"],
-        }),
-        removeAdminListing: builder.mutation<AdminListingActionResponse, string>({
-            query: (id) => ({
-                url: `/admin/listings/${id}/remove`,
-                method: "POST",
-            }),
-            invalidatesTags: ["Listings"],
         }),
         verifyAdminUserDocument: builder.mutation<AdminDocumentActionResponse, string>({
             query: (id) => ({
@@ -499,14 +516,6 @@ export const {
     useGetAdminUsersQuery,
     useGetAdminUserQuery,
     useGetAdminUserDocumentsQuery,
-    useGetAdminListingsQuery,
-    useGetAdminListingReportsQuery,
-    useResolveAdminListingReportMutation,
-    useLazyGetAdminListingQuery,
-    useApproveAdminListingMutation,
-    useRejectAdminListingMutation,
-    useDeactivateAdminListingMutation,
-    useRemoveAdminListingMutation,
     useVerifyAdminUserDocumentMutation,
     useRejectAdminUserDocumentMutation,
     useActivateAdminUserMutation,
