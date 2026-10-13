@@ -1,13 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, ChevronLeft, ChevronRight, Eye, Loader2, Mail, X } from "lucide-react";
 import { toast } from "sonner";
 import {
     type AdminListingReport,
     type AdminReportStatus,
-    useGetAdminListingReportsQuery,
-    useResolveAdminListingReportMutation,
 } from "@/redux/features/admin/adminApi";
 
 const ACTIONS = [
@@ -16,6 +14,11 @@ const ACTIONS = [
     { value: "listing_deactivated", label: "Deactivate listing" },
     { value: "listing_removed", label: "Remove listing permanently" },
 ] as const;
+
+type AdminReportsResponse = {
+    data: { reports: AdminListingReport[] };
+    meta: { total: number; totalPages: number };
+};
 
 function getErrorMessage(error: unknown, fallback: string) {
     if (
@@ -50,14 +53,38 @@ function statusClasses(status: AdminReportStatus) {
 
 export default function AdminReportsPage() {
     const [page, setPage] = useState(1);
+    const [data, setData] = useState<AdminReportsResponse>();
+    const [isLoading, setIsLoading] = useState(true);
+    const [isFetching, setIsFetching] = useState(false);
+    const [isError, setIsError] = useState(false);
     const [activeReport, setActiveReport] = useState<AdminListingReport | null>(null);
     const [action, setAction] = useState<(typeof ACTIONS)[number]["value"]>("dismissed");
     const [notes, setNotes] = useState("");
-    const [resolveReport, { isLoading: isResolving }] = useResolveAdminListingReportMutation();
-    const { data, isLoading, isFetching, isError, refetch } = useGetAdminListingReportsQuery({
-        page,
-        limit: 10,
-    });
+    const [isResolving, setIsResolving] = useState(false);
+
+    const refetch = useCallback(async () => {
+        setIsFetching(true);
+        setIsError(false);
+        try {
+            const response = await fetch(`/api/admin/reports?page=${page}&limit=10`);
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload?.message ?? "Unable to load reports.");
+            setData(payload as AdminReportsResponse);
+        } catch {
+            setIsError(true);
+        } finally {
+            setIsLoading(false);
+            setIsFetching(false);
+        }
+    }, [page]);
+
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            void refetch();
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [refetch]);
 
     const reports = data?.data.reports ?? [];
     const totalPages = data?.meta.totalPages ?? 1;
@@ -68,17 +95,23 @@ export default function AdminReportsPage() {
             return;
         }
 
+        setIsResolving(true);
         try {
-            const response = await resolveReport({
-                id: activeReport.id,
-                action,
-                notes,
-            }).unwrap();
-            toast.success(response.data.message);
+            const response = await fetch(`/api/admin/reports/${activeReport.id}/resolve`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action, notes }),
+            });
+            const payload = await response.json();
+            if (!response.ok) throw { data: payload };
+
+            toast.success(payload.data?.message ?? payload.message ?? "Report resolved successfully.");
             setActiveReport(null);
             setNotes("");
         } catch (error) {
             toast.error(getErrorMessage(error, "Unable to resolve this report."));
+        } finally {
+            setIsResolving(false);
         }
     };
 

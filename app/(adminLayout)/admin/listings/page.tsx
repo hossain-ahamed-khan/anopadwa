@@ -51,7 +51,7 @@ function escapeHtml(value: string) {
 }
 
 function getListingDetailsHtml(listing: AdminListingDetails) {
-    const images = listing.images
+    const images = [...listing.images]
         .sort((first, second) => first.sortOrder - second.sortOrder)
         .map(
             (image) =>
@@ -86,8 +86,8 @@ function getListingDetailsHtml(listing: AdminListingDetails) {
                 ${location ? `<div><strong>Location:</strong> ${escapeHtml(location)}</div>` : ""}
                 <div><strong>Seller:</strong> ${escapeHtml(listing.seller.fullName)}</div>
                 ${listing.seller.sellerProfile?.storeName
-                    ? `<div><strong>Store:</strong> ${escapeHtml(listing.seller.sellerProfile.storeName)}</div>`
-                    : ""}
+            ? `<div><strong>Store:</strong> ${escapeHtml(listing.seller.sellerProfile.storeName)}</div>`
+            : ""}
                 <div><strong>Views:</strong> ${listing.viewsCount}</div>
                 <div><strong>Favorites:</strong> ${listing.favoritesCount}</div>
             </div>
@@ -252,9 +252,8 @@ export default function ProductVerificationTable() {
                                     {/* Status */}
                                     <td className="px-6 py-4 align-top">
                                         <span
-                                            className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium capitalize ${
-                                                statusClasses[listing.status]
-                                            }`}
+                                            className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium capitalize ${statusClasses[listing.status]
+                                                }`}
                                         >
                                             {listing.status}
                                         </span>
@@ -274,11 +273,10 @@ export default function ProductVerificationTable() {
                                                     )
                                                 }
                                                 disabled={actionListingId !== null || listing.status === "approved"}
-                                                className={`inline-flex cursor-pointer items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${
-                                                    listing.status === "approved"
+                                                className={`inline-flex cursor-pointer items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${listing.status === "approved"
                                                         ? "border-emerald-200 bg-emerald-50 text-emerald-600"
                                                         : "border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                                                }`}
+                                                    }`}
                                             >
                                                 <Check className="h-3.5 w-3.5" />
                                                 {listing.status === "approved" ? "Approved" : "Approve"}
@@ -296,7 +294,7 @@ export default function ProductVerificationTable() {
                                                 onClick={() => handleReject(listing)}
                                                 disabled={actionListingId !== null}
                                                 className="inline-flex cursor-pointer items-center justify-center rounded-md border border-red-100 bg-red-50 p-1.5 text-red-500 transition hover:bg-red-100 disabled:opacity-50"
-                                                aria-label="Reject listing"
+                                                aria-label="Reject product"
                                             >
                                                 <X className="h-3.5 w-3.5" />
                                             </button>
