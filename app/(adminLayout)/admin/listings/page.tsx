@@ -202,7 +202,7 @@ export default function ProductVerificationTable() {
         <div className="w-full rounded-2xl border border-orange-100 bg-orange-50/40 p-4 sm:p-6">
             <div className="rounded-xl bg-white shadow-sm">
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-[1100px] border-collapse">
+                    <table className="w-full min-w-275 border-collapse">
                         <thead>
                             <tr className="text-left text-sm text-gray-700">
                                 <th className="px-6 py-5 font-semibold">SL no.</th>
@@ -274,8 +274,8 @@ export default function ProductVerificationTable() {
                                                 }
                                                 disabled={actionListingId !== null || listing.status === "approved"}
                                                 className={`inline-flex cursor-pointer items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${listing.status === "approved"
-                                                        ? "border-emerald-200 bg-emerald-50 text-emerald-600"
-                                                        : "border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                                                    ? "border-emerald-200 bg-emerald-50 text-emerald-600"
+                                                    : "border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                                                     }`}
                                             >
                                                 <Check className="h-3.5 w-3.5" />

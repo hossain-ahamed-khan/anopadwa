@@ -617,12 +617,12 @@ function ListingsSection({
             {!isLoading && !isError && listings.length > 0 && (
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {listings.map((listing) => (
-                    <ListingCard
-                        key={listing.id}
-                        listing={listing}
-                        badge={badge}
-                        productBasePath={productBasePath}
-                    />
+                        <ListingCard
+                            key={listing.id}
+                            listing={listing}
+                            badge={badge}
+                            productBasePath={productBasePath}
+                        />
                     ))}
                 </div>
             )}
@@ -918,7 +918,7 @@ function ExploreLocationsSection() {
                         <a
                             key={location.id}
                             href="#"
-                            className="group relative block aspect-[4/3] overflow-hidden rounded-xl"
+                            className="group relative block aspect-4/3 overflow-hidden rounded-xl"
                         >
                             <Image
                                 src={locationImg}
@@ -926,7 +926,7 @@ function ExploreLocationsSection() {
                                 fill
                                 className="object-cover transition duration-300 group-hover:scale-105"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                            <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
                             <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4">
                                 <div>
                                     <p className="text-sm font-semibold text-white">{location.name}</p>
