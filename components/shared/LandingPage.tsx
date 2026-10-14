@@ -184,11 +184,11 @@ function HeroSection({ query, onQueryChange }: HeroSectionProps) {
     };
 
     return (
-        <section className="relative overflow-hidden  bg-[#E5A93C]">
-            <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-6 md:grid-cols-[280px_1fr_320px]">
+        <section className="relative overflow-hidden bg-[#156240]">
+            <div className="mx-auto grid max-w-7xl grid-cols-2 items-end gap-x-4 gap-y-6 px-4 pt-8 sm:px-6 lg:grid-cols-[240px_1fr_260px] lg:items-center lg:gap-8 lg:pt-0 xl:grid-cols-[280px_1fr_320px] 2xl:max-w-360">
                 {/* Pointing character */}
-                <div className="order-2 flex justify-center md:order-1 md:justify-start">
-                    <div className="relative h-64 w-52 md:h-72 md:w-60">
+                <div className="order-2 flex justify-center lg:order-1 lg:justify-start">
+                    <div className="relative h-44 w-36 sm:h-56 sm:w-44 md:h-64 md:w-52 lg:h-72 lg:w-60">
                         <Image
                             src={heroLeft}
                             alt="Person pointing toward the search bar"
@@ -200,13 +200,13 @@ function HeroSection({ query, onQueryChange }: HeroSectionProps) {
                 </div>
 
                 {/* Search */}
-                <div className="order-1 flex flex-col items-center gap-3 text-center md:order-2">
-                    <div className="flex items-center gap-2 text-sm font-medium text-emerald-50">
+                <div className="order-1 col-span-2 flex flex-col items-center gap-3 text-center lg:order-2 lg:col-span-1">
+                    <div className="flex flex-wrap items-center justify-center gap-2 text-sm font-medium text-emerald-50">
                         <MapPin className="h-4 w-4 text-emerald-300" aria-hidden />
                         <span>Find anything in Ghana</span>
                         <button
                             type="button"
-                            className="ml-1 flex items-center gap-1 rounded-full bg-[#156240] px-3 py-1 text-xs font-semibold"
+                            className="ml-1 flex items-center gap-1 rounded-full bg-amber-500 hover:bg-amber-600 px-3 py-1 text-xs font-semibold"
                         >
                             <MapPin className="h-3 w-3" aria-hidden />
                             All Locations
@@ -216,7 +216,7 @@ function HeroSection({ query, onQueryChange }: HeroSectionProps) {
                     <form
                         role="search"
                         onSubmit={handleSubmit}
-                        className="flex w-full max-w-xl items-center gap-3 rounded-full bg-white px-5 py-1 shadow-lg"
+                        className="flex w-full max-w-xl items-center gap-3 rounded-full bg-white px-4 py-1 shadow-lg sm:px-5"
                     >
                         <input
                             type="text"
@@ -224,7 +224,7 @@ function HeroSection({ query, onQueryChange }: HeroSectionProps) {
                             onChange={(e) => onQueryChange(e.target.value)}
                             placeholder="What are you looking for?"
                             aria-label="Search products by name"
-                            className="w-full bg-transparent text-sm text-emerald-950 placeholder:text-emerald-950/40 focus:outline-none"
+                            className="w-full min-w-0 bg-transparent text-sm text-emerald-950 placeholder:text-emerald-950/40 focus:outline-none"
                         />
                         {query && (
                             <button
@@ -247,12 +247,13 @@ function HeroSection({ query, onQueryChange }: HeroSectionProps) {
                 </div>
 
                 {/* Hero image */}
-                <div className="order-3 flex justify-end">
+                <div className="order-3 flex justify-center lg:justify-end">
                     <Image
                         src={heroRight}
                         alt="hero-right"
                         width={250}
                         height={250}
+                        className="h-auto w-36 sm:w-44 md:w-52 lg:w-56 xl:w-62.5"
                     />
                 </div>
             </div>
@@ -298,7 +299,7 @@ function CategorySidebar({
     }, [selected, rootCategories]);
 
     return (
-        <aside className="h-fit w-full shrink-0 self-start bg-white p-4 md:sticky md:top-4 md:w-64">
+        <aside className="h-fit max-h-80 w-full shrink-0 self-start overflow-y-auto bg-white p-4 lg:sticky lg:top-4 lg:max-h-none lg:w-64 lg:overflow-visible">
             {isLoading && (
                 <div className="space-y-2" aria-busy="true">
                     {Array.from({ length: 10 }).map((_, i) => (
@@ -464,7 +465,7 @@ function ListingCard({
                         alt={listing.title}
                         fill
                         unoptimized
-                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                        sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover transition duration-300 group-hover:scale-105"
                     />
                 ) : (
@@ -477,7 +478,7 @@ function ListingCard({
                 )}
             </div>
 
-            <div className="space-y-1.5 p-4">
+            <div className="space-y-1.5 p-3 sm:p-4">
                 <h3 className="line-clamp-1 text-sm font-semibold text-emerald-950">
                     {listing.title}
                 </h3>
@@ -499,7 +500,7 @@ function ListingCard({
                     </p>
                 )}
                 <div className="flex items-center gap-2 text-xs text-emerald-950/50">
-                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 capitalize text-emerald-800">
+                    <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 capitalize text-emerald-800">
                         {listing.condition}
                     </span>
                     <span className="truncate">{listing.category?.name}</span>
@@ -518,7 +519,7 @@ function ListingCardSkeleton() {
     return (
         <div className="overflow-hidden rounded-xl border border-emerald-950/5 bg-white shadow-sm">
             <div className="aspect-[4/3] w-full animate-pulse bg-emerald-950/5" />
-            <div className="space-y-2 p-4">
+            <div className="space-y-2 p-3 sm:p-4">
                 <div className="h-4 w-3/4 animate-pulse rounded bg-emerald-950/5" />
                 <div className="h-3 w-1/2 animate-pulse rounded bg-emerald-950/5" />
                 <div className="h-3 w-1/3 animate-pulse rounded bg-emerald-950/5" />
@@ -563,9 +564,9 @@ function ListingsSection({
 }: ListingsSectionProps) {
     return (
         <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-6">
-            <div className="mb-5 flex items-end justify-between">
-                <div>
-                    <h2 id={`${id}-title`} className="text-lg font-semibold text-emerald-950">
+            <div className="mb-5 flex items-end justify-between gap-3">
+                <div className="min-w-0">
+                    <h2 id={`${id}-title`} className="text-base font-semibold text-emerald-950 sm:text-lg">
                         {title}
                     </h2>
                     {subtitle && (
@@ -575,7 +576,7 @@ function ListingsSection({
                 {showViewAll && (
                     <a
                         href="#"
-                        className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
+                        className="shrink-0 text-sm font-medium text-emerald-700 hover:text-emerald-800"
                     >
                         View All
                     </a>
@@ -584,7 +585,7 @@ function ListingsSection({
 
             {isLoading && (
                 <div
-                    className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+                    className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3"
                     aria-busy="true"
                 >
                     {Array.from({ length: 3 }).map((_, i) => (
@@ -615,7 +616,7 @@ function ListingsSection({
             )}
 
             {!isLoading && !isError && listings.length > 0 && (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
                     {listings.map((listing) => (
                         <ListingCard
                             key={listing.id}
@@ -704,8 +705,8 @@ function ListingsArea({
     const hasMoreRecent = recent.length > recentVisible;
 
     return (
-        <section id="listings-area" className="bg-[#F3F4F5] w-full px-6 py-10">
-            <div className="max-w-7xl mx-auto flex flex-col gap-8 md:flex-row">
+        <section id="listings-area" className="bg-[#F3F4F5] w-full px-4 py-8 sm:px-6 sm:py-10">
+            <div className="max-w-7xl 2xl:max-w-360 mx-auto flex flex-col gap-6 lg:flex-row lg:gap-8">
                 <CategorySidebar
                     categories={categoriesQuery.data}
                     isLoading={categoriesQuery.isLoading}
@@ -715,14 +716,14 @@ function ListingsArea({
                     onRetry={categoriesQuery.refetch}
                 />
 
-                <div className="min-w-0 flex-1 space-y-12">
+                <div className="min-w-0 flex-1 space-y-10 sm:space-y-12">
                     {isSearching ? (
                         <>
                             <div
                                 role="status"
-                                className="flex items-center justify-between gap-3 rounded-xl border border-emerald-950/10 bg-white px-4 py-3 text-sm text-emerald-950"
+                                className="flex flex-col gap-2 rounded-xl border border-emerald-950/10 bg-white px-4 py-3 text-sm text-emerald-950 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
                             >
-                                <p>
+                                <p className="min-w-0 break-words">
                                     {isSearchLoading || searchQuery.isError
                                         ? "Searching for "
                                         : `${resultCount} ${resultCount === 1 ? "result" : "results"} for `}
@@ -755,7 +756,7 @@ function ListingsArea({
                                     meta && meta.totalPages > 1 ? (
                                         <nav
                                             aria-label="Search results pagination"
-                                            className="mt-8 flex items-center justify-center gap-4"
+                                            className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4"
                                         >
                                             <button
                                                 type="button"
@@ -854,10 +855,10 @@ function ListingsArea({
 
 function HowItWorksSection() {
     return (
-        <section className="w-full px-6 py-10">
-            <div className="max-w-7xl mx-auto">
+        <section className="w-full px-4 py-8 sm:px-6 sm:py-10">
+            <div className="max-w-7xl 2xl:max-w-360 mx-auto">
                 <div className="mb-8 text-center">
-                    <h2 className="flex items-center justify-center gap-2 text-xl font-semibold text-emerald-950">
+                    <h2 className="flex flex-wrap items-center justify-center gap-2 text-lg font-semibold text-emerald-950 sm:text-xl">
                         <span aria-hidden>
                             <Image
                                 src={ghanaFlag}
@@ -874,7 +875,7 @@ function HowItWorksSection() {
                     {HOW_IT_WORKS.map(({ id, title, description, icon: Icon }) => (
                         <div
                             key={id}
-                            className="rounded-xl border border-emerald-950/5 bg-white p-6 text-center shadow-sm"
+                            className="rounded-xl border border-emerald-950/5 bg-white p-5 text-center shadow-sm sm:p-6"
                         >
                             <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">
                                 <Icon className="h-5 w-5 text-emerald-700" aria-hidden />
@@ -895,25 +896,25 @@ function HowItWorksSection() {
 
 function ExploreLocationsSection() {
     return (
-        <section className="bg-[#E5A93C] py-8">
-            <div className="mx-auto max-w-7xl px-6">
+        <section className="bg-[#156240] py-8">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 2xl:max-w-360">
                 <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <h2 className="text-lg font-semibold text-white">Explore Top Locations</h2>
+                        <h2 className="text-base font-semibold text-white sm:text-lg">Explore Top Locations</h2>
                         <p className="mt-1 text-sm text-white/80">
                             Browse listings from popular locations in one click.
                         </p>
                     </div>
                     <button
                         type="button"
-                        className="flex items-center gap-2 self-start rounded-full bg-[#156240] hover:bg-[#104930] px-4 py-2 text-sm font-medium text-white cursor-pointer"
+                        className="flex items-center gap-2 self-start rounded-full bg-amber-500 hover:bg-amber-600 px-4 py-2 text-sm font-medium text-white cursor-pointer"
                     >
                         See All Location
                         <ArrowRight className="h-4 w-4" aria-hidden />
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
                     {LOCATIONS.map((location) => (
                         <a
                             key={location.id}

@@ -84,7 +84,7 @@ export interface ProductDetailProps {
 
 function ProductBreadcrumb({ items }: { items: Breadcrumb[] }) {
     return (
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm">
+        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-xs sm:text-sm">
             {items.map((item, i) => {
                 const isLast = i === items.length - 1;
                 return (
@@ -115,7 +115,7 @@ function ImageGallery({ images }: { images: ProductImage[] }) {
 
     return (
         <div>
-            <div className="relative aspect-[16/8.5] w-full overflow-hidden rounded-md border border-slate-200 bg-white">
+            <div className="relative aspect-4/3 w-full overflow-hidden rounded-md border border-slate-200 bg-white sm:aspect-16/10 lg:aspect-16/8.5">
                 {active && (
                     <Image
                         src={active.src}
@@ -129,7 +129,7 @@ function ImageGallery({ images }: { images: ProductImage[] }) {
             </div>
 
             {images.length > 1 && (
-                <div className="mt-5 flex gap-4 overflow-x-auto pb-1">
+                <div className="mt-4 flex gap-3 overflow-x-auto pb-1 sm:mt-5 sm:gap-4">
                     {images.map((image, i) => (
                         <button
                             key={image.src + i}
@@ -137,7 +137,7 @@ function ImageGallery({ images }: { images: ProductImage[] }) {
                             onClick={() => router.push('/login')}
                             aria-label={`Show image ${i + 1}`}
                             aria-pressed={i === activeIndex}
-                            className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-md border bg-white transition sm:h-24 sm:w-28 ${i === activeIndex
+                            className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-md border bg-white transition sm:h-20 sm:w-24 lg:h-24 lg:w-28 ${i === activeIndex
                                 ? 'border-emerald-700 ring-1 ring-emerald-700'
                                 : 'border-slate-200 hover:border-slate-400'
                                 }`}
@@ -157,8 +157,8 @@ function ImageGallery({ images }: { images: ProductImage[] }) {
 
 function PriceRibbon({ price }: { price: string }) {
     return (
-        <div className="relative inline-flex">
-            <span className="bg-emerald-600 py-2 pl-4 pr-9 text-lg font-semibold text-white [clip-path:polygon(0_0,100%_0,88%_100%,0%_100%)]">
+        <div className="relative inline-flex max-w-full">
+            <span className="wrap-break-word bg-emerald-600 py-2 pl-4 pr-9 text-base font-semibold text-white sm:text-lg [clip-path:polygon(0_0,100%_0,88%_100%,0%_100%)]">
                 {price}
             </span>
         </div>
@@ -171,15 +171,15 @@ function PriceRibbon({ price }: { price: string }) {
 
 function OverviewTable({ items }: { items: OverviewItem[] }) {
     return (
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
             <h2 className="border-b border-slate-100 pb-3 text-sm font-semibold text-slate-900">
                 Overview
             </h2>
             <dl className="divide-y divide-slate-100">
                 {items.map((item, index) => (
-                    <div key={`${item.label}-${index}`} className="flex items-center justify-between py-2.5 text-sm">
-                        <dt className="text-slate-500">{item.label}</dt>
-                        <dd className="font-medium text-slate-900">{item.value}</dd>
+                    <div key={`${item.label}-${index}`} className="flex items-center justify-between gap-4 py-2.5 text-sm">
+                        <dt className="shrink-0 text-slate-500">{item.label}</dt>
+                        <dd className="min-w-0 wrap-break-word text-right font-medium text-slate-900">{item.value}</dd>
                     </div>
                 ))}
             </dl>
@@ -209,13 +209,13 @@ function SellerCard({
     const maskedPhone = `${seller.phone.slice(0, 6)}${'X'.repeat(Math.max(seller.phone.length - 6, 0))}`;
 
     return (
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
             <h2 className="mb-4 border-b border-slate-100 pb-3 text-sm font-semibold text-slate-900">
                 Seller Information
             </h2>
 
             <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-sm font-semibold text-emerald-700">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-sm font-semibold text-emerald-700">
                     {seller.avatarUrl ? (
                         <Image
                             src={seller.avatarUrl}
@@ -228,8 +228,8 @@ function SellerCard({
                         seller.name.charAt(0).toUpperCase()
                     )}
                 </div>
-                <div>
-                    <p className="font-semibold text-slate-900">{seller.name}</p>
+                <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-900">{seller.name}</p>
                     <p className="flex items-center gap-1.5 text-xs text-slate-500">
                         <span
                             className={`h-1.5 w-1.5 rounded-full ${seller.isOnline ? 'bg-emerald-500' : 'bg-red-500'
@@ -242,7 +242,7 @@ function SellerCard({
 
             <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-500">
                 <MapPin className="h-4 w-4 shrink-0" />
-                {seller.location}
+                <span className="min-w-0 wrap-break-word">{seller.location}</span>
             </p>
 
             <button
@@ -302,7 +302,7 @@ const safetyTips = [
 
 function SafetyTipsCard() {
     return (
-        <aside className="rounded-xl border border-slate-200 bg-white p-5 mt-4">
+        <aside className="rounded-xl border border-slate-200 bg-white p-4 mt-4 sm:p-5">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                 <ShieldCheck className="h-4 w-4 text-emerald-600" />
                 Safety Tips
@@ -336,7 +336,7 @@ function RelatedAdCard({ ad }: { ad: RelatedAd }) {
             href={ad.href}
             className="group overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:shadow-md"
         >
-            <div className="relative aspect-[4/3] w-full bg-slate-100">
+            <div className="relative aspect-4/3 w-full bg-slate-100">
                 <FavouriteButton
                     listingId={ad.id}
                     className="absolute right-3 top-3 z-10"
@@ -350,15 +350,15 @@ function RelatedAdCard({ ad }: { ad: RelatedAd }) {
                     src={ad.image}
                     alt={ad.title}
                     fill
-                    sizes="(min-width: 1024px) 25vw, 50vw"
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                     className="object-cover transition duration-300 group-hover:scale-105"
                 />
             </div>
             <div className="p-3.5">
                 <h3 className="line-clamp-1 text-sm font-medium text-slate-900">{ad.title}</h3>
                 <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
-                    <MapPin className="h-3 w-3" />
-                    {ad.location}
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{ad.location}</span>
                 </p>
                 <p className="mt-1.5 flex items-center gap-1 text-xs text-amber-600">
                     <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
@@ -377,15 +377,15 @@ function RelatedAdCard({ ad }: { ad: RelatedAd }) {
 
 function LocationMap({ location }: { location: string }) {
     return (
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
             <h2 className="mb-3 border-b border-slate-100 pb-3 text-sm font-semibold text-slate-900">
                 Location
             </h2>
-            <div className="relative flex h-64 items-center justify-center overflow-hidden rounded-lg bg-slate-100">
+            <div className="relative flex h-48 items-center justify-center overflow-hidden rounded-lg bg-slate-100 sm:h-64 lg:h-72">
                 <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(90deg,#cbd5e1_1px,transparent_1px),linear-gradient(#cbd5e1_1px,transparent_1px)] [background-size:28px_28px]" />
-                <div className="relative flex flex-col items-center gap-1.5">
+                <div className="relative flex max-w-full flex-col items-center gap-1.5 px-4">
                     <MapPin className="h-8 w-8 fill-emerald-600 text-emerald-700" />
-                    <span className="rounded-md bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-sm">
+                    <span className="max-w-full wrap-break-word rounded-md bg-white px-2.5 py-1 text-center text-xs font-medium text-slate-700 shadow-sm">
                         {location}
                     </span>
                 </div>
@@ -458,36 +458,36 @@ export default function ProductDetailPage({
 
     return (
         <div className="min-h-screen bg-[#f4f4f4]">
-            <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8 2xl:max-w-7xl">
                 <ProductBreadcrumb items={breadcrumbs} />
 
-                <div className="mt-4 flex items-start justify-between gap-4">
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+                <div className="mt-4 flex items-start justify-between gap-3 sm:gap-4">
+                    <h1 className="min-w-0 wrap-break-word text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
                     <FavouriteButton listingId={listingId} size="large" />
                 </div>
 
-                <div className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <div className="mt-4 grid grid-cols-1 gap-5 sm:mt-5 sm:gap-6 lg:grid-cols-3">
                     {/* Left column */}
-                    <div className="space-y-6 lg:col-span-2">
+                    <div className="min-w-0 space-y-5 sm:space-y-6 lg:col-span-2">
                         <ImageGallery images={images} />
 
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 sm:text-sm">
                             <span className="flex items-center gap-1.5">
-                                <Clock className="h-4 w-4" />
+                                <Clock className="h-4 w-4 shrink-0" />
                                 {postedAt}
                             </span>
                             <span className="flex items-center gap-1.5">
-                                <MapPin className="h-4 w-4" />
+                                <MapPin className="h-4 w-4 shrink-0" />
                                 {location}
                             </span>
                         </div>
 
                         <PriceRibbon price={price} />
 
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_260px]">
-                            <div className="rounded-xl border border-slate-200 bg-white p-5">
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
                                 <h2 className="mb-2 text-sm font-semibold text-slate-900">Description</h2>
-                                <p className="text-sm leading-relaxed text-slate-600">{description}</p>
+                                <p className="wrap-break-word text-sm leading-relaxed text-slate-600">{description}</p>
                             </div>
                             <OverviewTable items={overview} />
                         </div>
@@ -497,7 +497,7 @@ export default function ProductDetailPage({
                     </div>
 
                     {/* Right column */}
-                    <div className="lg:col-span-1">
+                    <div className="min-w-0 lg:col-span-1">
                         <SellerCard
                             seller={seller}
                             onLogin={() => router.push('/login')}
@@ -511,7 +511,7 @@ export default function ProductDetailPage({
                 </div>
             </div>
             {relatedAds.length > 0 && (
-                <section className="py-10 mx-auto max-w-6xl">
+                <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 2xl:max-w-7xl">
                     <h2 className="mb-4 text-base font-semibold text-slate-900">Related Ads</h2>
                     <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         {relatedAds.map((ad) => (
